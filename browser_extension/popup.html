@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NWU Quick Links</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>NWU Quick Links</h1>
+
+      <div class="input-group">
+        <label for="hostname">Printer Hostname:</label>
+        <input
+          type="text"
+          id="hostname"
+          name="hostname"
+          placeholder="Enter Printer Hostname"
+          autocomplete="off"
+          list="hostname-suggestions"
+        />
+        <datalist id="hostname-suggestions"></datalist>
+
+        <div class="toggle-group">
+          <label class="pill active" id="pill-svcp">
+            <input type="radio" name="mode" value="svcp" checked hidden>
+            SVCP
+          </label>
+          <label class="pill" id="pill-search">
+            <input type="radio" name="mode" value="search" hidden>
+            Search
+          </label>
+        </div>
+
+        <button id="hostname-btn">Go to SVCP</button>
+      </div>
+
+      <div class="input-group">
+        <label for="pidUser">PID User:</label>
+        <input
+          type="text"
+          id="pidUser"
+          name="pidUser"
+          placeholder="Enter PID User"
+          autocomplete="off"
+          list="pidUser-suggestions"
+        />
+        <datalist id="pidUser-suggestions"></datalist>
+        <button id="pidUser-btn">Go to Profile Info</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="settings-toggle" id="settingsToggle">
+        <span>⚙️ Settings</span>
+      </div>
+
+      <div id="settingsPanel" class="settings-panel hidden">
+        <div class="input-group">
+          <label for="appUrl">Printer Search App URL:</label>
+          <input
+            type="text"
+            id="appUrl"
+            name="appUrl"
+            placeholder="http://localhost:5000"
+          />
+          <button id="saveUrl-btn">Save URL</button>
+        </div>
+        <div id="urlStatus" class="url-status"></div>
+      </div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
