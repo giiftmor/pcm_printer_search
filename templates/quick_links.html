@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}PCM Compass - Quick Links{% endblock %}
+{% block header %}Quick Links{% endblock %}
+{% block content %}
+<div class="card">
+    <h3>Quick Links</h3>
+    <div id="linksGrid" class="dashboard-grid"></div>
+</div>
+
+<div class="card" id="adminSection" style="display:none;">
+    <h3>Add New Link</h3>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <input type="text" id="linkName" placeholder="Name" style="flex:1;min-width:120px;padding:8px;border:1px solid #ddd;border-radius:4px;">
+        <input type="text" id="linkUrl" placeholder="URL" style="flex:2;min-width:200px;padding:8px;border:1px solid #ddd;border-radius:4px;">
+        <input type="text" id="linkIcon" placeholder="Icon (emoji)" style="width:80px;padding:8px;border:1px solid #ddd;border-radius:4px;">
+        <button class="btn btn-primary" onclick="addLink()">Add</button>
+    </div>
+</div>
+
+<script>
+let isAdmin = false;
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadLinks();
+    checkAdmin();
+});
+
+function checkAdmin() {
+    fetch('/api/admin/status').then(r => r.json()).then(d => {
+        isAdmin = d.is_admin;
+        document.getElementById('adminSection').style.display = isAdmin ? 'block' : 'none';
+    });
+}
+
+function loadLinks() {
+    fetch('/api/links').then(r => r.json()).then(links => {
+        const grid = document.getElementById('linksGrid');
+        grid.innerHTML = links.map(l => `
+            <a href="${l.url}" target="_blank" class="dashboard-card" style="text-align:center;">
+                <div class="card-icon">${l.icon}</div>
+                <h3>${l.name}</h3>
+                ${isAdmin ? `<button onclick="event.preventDefault();deleteLink('${l.id}')" style="margin-top:8px;padding:4px 8px;font-size:11px;background:#dc3545;color:white;border:none;border-radius:4px;cursor:pointer;">Remove</button>` : ''}
+            </a>
+        `).join('');
+    });
+}
+
+function addLink() {
+    const name = document.getElementById('linkName').value.trim();
+    const url = document.getElementById('linkUrl').value.trim();
+    const icon = document.getElementById('linkIcon').value.trim() || '🔗';
+    if (!name || !url) return;
+    fetch('/api/links', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, url, icon })
+    }).then(() => {
+        document.getElementById('linkName').value = '';
+        document.getElementById('linkUrl').value = '';
+        document.getElementById('linkIcon').value = '';
+        loadLinks();
+    });
+}
+
+function deleteLink(id) {
+    fetch(`/api/links/${id}`, { method: 'DELETE' }).then(() => loadLinks());
+}
+</script>
+{% endblock %}

@@ -35,3 +35,6 @@ Thumbs.db
 *.crx
 nwu-redirect-extension.pem
 nwu-redirect-extension.crx
+
+# Runtime data
+quick_links.json
