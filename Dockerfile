@@ -23,7 +23,9 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 RUN pip install --no-cache-dir --upgrade --force-reinstall numpy pandas
 
 # Copy application files
-COPY app.py .
+COPY app.py config.py ./
+COPY core/ ./core/
+COPY modules/ ./modules/
 COPY templates/ ./templates/
 COPY static/ ./static/
 COPY workbook_url.txt .
