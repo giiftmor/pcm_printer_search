@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}PCM Compass - Printer Search{% endblock %}
+{% block header %}Printer Search{% endblock %}
+{% block content %}
+<div class="card">
+    <h3>Search Printer Data</h3>
+    <div class="last-update" id="lastUpdate">
+        Data last updated: <span id="lastUpdateTime">Loading...</span>
+    </div>
+    <div class="search-group">
+        <input type="text" id="search-term" placeholder="Hostname, Serial, MAC, or Location" autofocus>
+        <button class="btn btn-primary" onclick="performSearch()">Search</button>
+    </div>
+    <p style="font-size:12px;color:#999;">Data auto-refreshes every 60 seconds</p>
+</div>
+
+<div class="card" id="resultsCard" style="display:none;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <h3>Results</h3>
+        <span id="resultsCount"></span>
+    </div>
+    <div id="resultsContent" style="overflow-x:auto;"></div>
+</div>
+
+<script>
+const columnOrder = [
+    "Printer Hostname", "Make and Model", "Serial", "MAC", "Location", "Contact Person",
+    "ITHELP/SR Ref No.", "PaperCut ready", "Card Reader needed", "Card Reader Fix",
+    "Android Fix", "PaperCut sticker", "Status", "Date Completed", "Notes"
+];
+
+document.addEventListener('DOMContentLoaded', () => {
+    updateLastUpdateTime();
+    setInterval(updateLastUpdateTime, 30000);
+    const urlQ = new URLSearchParams(window.location.search).get('q');
+    if (urlQ) {
+        document.getElementById('search-term').value = urlQ;
+        performSearch();
+    }
+    document.getElementById('search-term').addEventListener('keypress', e => {
+        if (e.key === 'Enter') performSearch();
+    });
+});
+
+function updateLastUpdateTime() {
+    fetch('/api/printer/last-update')
+        .then(r => r.json())
+        .then(d => {
+            document.getElementById('lastUpdateTime').textContent = d.timestamp || 'Never';
+        });
+}
+
+function performSearch() {
+    const term = document.getElementById('search-term').value.trim();
+    if (!term) return;
+    const rc = document.getElementById('resultsCard');
+    const content = document.getElementById('resultsContent');
+    const count = document.getElementById('resultsCount');
+    rc.style.display = 'block';
+    content.innerHTML = '<p style="text-align:center;">Searching...</p>';
+    count.textContent = '';
+
+    fetch('/api/printer/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `search_term=${encodeURIComponent(term)}`
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.error) {
+            content.innerHTML = `<p class="error">${data.error}</p>`;
+            count.textContent = '';
+            return;
+        }
+        count.textContent = `${data.length} result${data.length !== 1 ? 's' : ''}`;
+        let html = '<table><thead><tr>';
+        columnOrder.forEach(c => html += `<th>${c}</th>`);
+        html += '</tr></thead><tbody>';
+        data.forEach(row => {
+            html += '<tr>';
+            columnOrder.forEach(c => html += `<td>${row[c] || ''}</td>`);
+            html += '</tr>';
+        });
+        html += '</tbody></table>';
+        content.innerHTML = html;
+    })
+    .catch(err => {
+        content.innerHTML = `<p class="error">Error: ${err.message}</p>`;
+    });
+}
+</script>
+{% endblock %}
