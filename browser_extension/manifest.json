@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "NWU Quick Links",
-  "version": "1.1.0",
-  "description": "Quick access to NWU SVPC, IDM profiles, and Printer Data Search",
-  "author": "Neo Moruri & Claude",
+  "name": "PCM Compass",
+  "version": "2.0.0",
+  "description": "Quick access to NWU PCM IT Service Desk tools",
+  "author": "PCM IT Service Desk",
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
@@ -12,16 +12,13 @@
       "128": "icon128.png"
     }
   },
-  "permissions": [
-    "tabs",
-    "activeTab"
-  ],
+  "permissions": ["tabs", "activeTab", "storage"],
   "host_permissions": [
     "*://*.nwu.ac.za/*",
     "http://localhost:5000/*",
-    "http://localhost:*/*",
     "http://196.252.43.75:5000/*"
   ],
+  "options_page": "settings.html",
   "icons": {
     "16": "icon16.png",
     "48": "icon48.png",

@@ -1,75 +1,49 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>NWU Quick Links</title>
-    <link rel="stylesheet" href="popup.css" />
-  </head>
-  <body>
-    <div class="container">
-      <h1>NWU Quick Links</h1>
-
-      <div class="input-group">
-        <label for="hostname">Printer Hostname:</label>
-        <input
-          type="text"
-          id="hostname"
-          name="hostname"
-          placeholder="Enter Printer Hostname"
-          autocomplete="off"
-          list="hostname-suggestions"
-        />
-        <datalist id="hostname-suggestions"></datalist>
-
-        <div class="toggle-group">
-          <label class="pill active" id="pill-svcp">
-            <input type="radio" name="mode" value="svcp" checked hidden>
-            SVCP
-          </label>
-          <label class="pill" id="pill-search">
-            <input type="radio" name="mode" value="search" hidden>
-            Search
-          </label>
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <div class="popup">
+        <div class="header">
+            <h1>PCM Compass</h1>
+            <button id="settingsBtn" class="icon-btn" title="Settings">&#9881;</button>
         </div>
 
-        <button id="hostname-btn">Go to SVCP</button>
-      </div>
+        <section class="tool-section">
+            <h2>Printer Search</h2>
+            <div class="input-row">
+                <input type="text" id="printerInput" placeholder="Hostname, serial, or MAC" list="printer-history">
+                <datalist id="printer-history"></datalist>
+            </div>
+            <div class="button-row">
+                <button id="printerSearchBtn" class="btn primary">Search</button>
+                <button id="printerOpenBtn" class="btn secondary">Open App</button>
+            </div>
+        </section>
 
-      <div class="input-group">
-        <label for="pidUser">PID User:</label>
-        <input
-          type="text"
-          id="pidUser"
-          name="pidUser"
-          placeholder="Enter PID User"
-          autocomplete="off"
-          list="pidUser-suggestions"
-        />
-        <datalist id="pidUser-suggestions"></datalist>
-        <button id="pidUser-btn">Go to Profile Info</button>
-      </div>
+        <hr>
 
-      <div class="divider"></div>
+        <section class="tool-section">
+            <h2>User Lookup</h2>
+            <div class="input-row">
+                <input type="text" id="userIdInput" placeholder="User ID (e.g. 31408362)" list="user-history">
+                <datalist id="user-history"></datalist>
+            </div>
+            <div class="button-row">
+                <button id="idmBtn" class="btn primary">IDM Profile</button>
+                <button id="grouperBtn" class="btn primary">Grouper Groups</button>
+            </div>
+        </section>
 
-      <div class="settings-toggle" id="settingsToggle">
-        <span>⚙️ Settings</span>
-      </div>
+        <hr>
 
-      <div id="settingsPanel" class="settings-panel hidden">
-        <div class="input-group">
-          <label for="appUrl">Printer Search App URL:</label>
-          <input
-            type="text"
-            id="appUrl"
-            name="appUrl"
-            placeholder="http://localhost:5000"
-          />
-          <button id="saveUrl-btn">Save URL</button>
-        </div>
-        <div id="urlStatus" class="url-status"></div>
-      </div>
-
+        <section class="tool-section">
+            <h2>Quick Links</h2>
+            <div id="quickLinks" class="links-grid"></div>
+        </section>
+    </div>
     <script src="popup.js"></script>
-  </body>
+</body>
 </html>
