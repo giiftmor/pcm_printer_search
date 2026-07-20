@@ -28,7 +28,6 @@ COPY core/ ./core/
 COPY modules/ ./modules/
 COPY templates/ ./templates/
 COPY static/ ./static/
-COPY workbook_url.txt .
 COPY .env.example .
 
 # Create non-root user for security
