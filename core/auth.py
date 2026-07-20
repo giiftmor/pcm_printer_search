@@ -13,9 +13,8 @@ def check_password(password: str, password_hash: bytes) -> bool:
 
 
 def init_admin_password(app):
-    from config import Config
     raw = os.getenv("ADMIN_PASSWORD", "print@NWU")
-    Config.ADMIN_PASSWORD_HASH = hash_password(raw)
+    app.config["ADMIN_PASSWORD_HASH"] = hash_password(raw)
 
 
 def admin_required(f):

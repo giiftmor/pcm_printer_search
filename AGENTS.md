@@ -1,15 +1,33 @@
-# PCM Printer Search — Agent Instructions
+# PCM Compass — Agent Instructions
 
 ## Running the App
 
 ```bash
 docker compose up -d    # Flask app on port 5000
 docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d  # Dev mode
+python app.py           # Local dev without Docker
+```
+
+## Project Structure
+
+```
+app.py              # Flask app factory + dev server
+config.py           # Config class (env-driven)
+core/               # Shared utilities (auth, helpers)
+modules/            # Feature blueprints
+  printer_search/   # Printer search module
+  idm_lookup/       # IDM lookup module
+  grouper/          # Grouper module
+  quick_links/      # Quick links module
+templates/          # Page routes + Jinja templates
+static/             # CSS, JS, images
+browser_extension/  # Chrome extension (Manifest V3)
+docs/               # Design specs and documentation
 ```
 
 ## Tech Stack
 
-Python 3.11, Flask, Pandas, openpyxl, Gunicorn, Docker
+Python 3.11, Flask, Pandas, openpyxl, Gunicorn, Docker, Chrome Extension (Manifest V3)
 
 ## 📝 Changelog
 
