@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}PCM Compass - IDM Lookup{% endblock %}
+{% block header %}IDM User Lookup{% endblock %}
+{% block content %}
+<div class="card">
+    <h3>Look up IDM Profile</h3>
+    <p>Enter a user ID to open their IDM profile page.</p>
+    <div class="search-group">
+        <input type="text" id="userId" placeholder="e.g. 31408362" autofocus>
+        <button class="btn btn-primary" onclick="openIDM()">Open Profile</button>
+    </div>
+    <div id="history" style="margin-top:16px;"></div>
+</div>
+
+<script>
+document.getElementById('userId').addEventListener('keypress', e => {
+    if (e.key === 'Enter') openIDM();
+});
+
+function openIDM() {
+    const userId = document.getElementById('userId').value.trim();
+    if (!userId) return;
+    fetch('/api/idm/lookup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `user_id=${encodeURIComponent(userId)}`
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.url) window.open(data.url, '_blank');
+        else alert(data.error);
+    });
+}
+</script>
+{% endblock %}
