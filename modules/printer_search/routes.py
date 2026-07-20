@@ -1,8 +1,6 @@
-from flask import Blueprint, request, jsonify, session
+from flask import Blueprint, request, jsonify, session, current_app
 import modules.printer_search.engine as engine
-from core.auth import admin_required
-from config import Config
-from core.auth import check_password
+from core.auth import admin_required, check_password
 import logging
 
 logger = logging.getLogger(__name__)
@@ -36,7 +34,7 @@ def admin_status():
 @printer_bp.route("/api/admin/login", methods=["POST"])
 def admin_login():
     password = request.form.get("password", "").strip()
-    if Config.ADMIN_PASSWORD_HASH and check_password(password, Config.ADMIN_PASSWORD_HASH):
+    if current_app.config.get("ADMIN_PASSWORD_HASH") and check_password(password, current_app.config["ADMIN_PASSWORD_HASH"]):
         session["is_admin"] = True
         return jsonify({"success": True, "message": "Login successful"})
     return jsonify({"success": False, "message": "Invalid password"})
