@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}PCM Compass{% endblock %}</title>
+    <link rel="stylesheet" href="/static/css/compass.css">
+    <link rel="icon" href="/favicon.ico">
+</head>
+<body>
+    <nav class="sidebar">
+        <div class="sidebar-brand">
+            <img src="/static/img/nwu-logo.png" alt="NWU">
+            <h1>PCM Compass</h1>
+        </div>
+        <div class="sidebar-nav">
+            <a href="/" class="{% if request.path == '/' %}active{% endif %}">
+                <span class="icon">🏠</span>
+                <span>Dashboard</span>
+            </a>
+            <a href="/printer-search" class="{% if request.path == '/printer-search' %}active{% endif %}">
+                <span class="icon">🖨️</span>
+                <span>Printer Search</span>
+            </a>
+            <a href="/idm-lookup" class="{% if request.path == '/idm-lookup' %}active{% endif %}">
+                <span class="icon">👤</span>
+                <span>IDM Lookup</span>
+            </a>
+            <a href="/grouper" class="{% if request.path == '/grouper' %}active{% endif %}">
+                <span class="icon">👥</span>
+                <span>Grouper Groups</span>
+            </a>
+            <a href="/quick-links" class="{% if request.path == '/quick-links' %}active{% endif %}">
+                <span class="icon">🔗</span>
+                <span>Quick Links</span>
+            </a>
+        </div>
+    </nav>
+
+    <main class="main">
+        <header class="header">
+            <h2>{% block header %}Dashboard{% endblock %}</h2>
+            <div id="admin-controls"></div>
+        </header>
+        <div class="content">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <script src="/static/js/compass.js"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

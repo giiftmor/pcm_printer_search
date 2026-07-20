@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}PCM Compass - Dashboard{% endblock %}
+{% block header %}Dashboard{% endblock %}
+{% block content %}
+<div class="dashboard-grid">
+    <a href="/printer-search" class="dashboard-card">
+        <div class="card-icon">🖨️</div>
+        <h3>Printer Search</h3>
+        <p>Search printer data by hostname, serial, MAC, or location.</p>
+    </a>
+    <a href="/idm-lookup" class="dashboard-card">
+        <div class="card-icon">👤</div>
+        <h3>IDM Lookup</h3>
+        <p>Look up a user's IDM profile information.</p>
+    </a>
+    <a href="/grouper" class="dashboard-card">
+        <div class="card-icon">👥</div>
+        <h3>Grouper Groups</h3>
+        <p>View a user's group memberships in Grouper.</p>
+    </a>
+    <a href="/quick-links" class="dashboard-card">
+        <div class="card-icon">🔗</div>
+        <h3>Quick Links</h3>
+        <p>Quick access to NWU IT service desk tools.</p>
+    </a>
+</div>
+{% endblock %}
