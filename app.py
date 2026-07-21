@@ -13,11 +13,13 @@ def create_app():
     from modules.idm_lookup.routes import idm_bp
     from modules.grouper.routes import grouper_bp
     from modules.quick_links.routes import links_bp
+    from modules.user_lookup import bp as user_lookup_bp
 
     app.register_blueprint(printer_bp)
     app.register_blueprint(idm_bp)
     app.register_blueprint(grouper_bp)
     app.register_blueprint(links_bp)
+    app.register_blueprint(user_lookup_bp)
 
     from templates.routes import pages_bp
     app.register_blueprint(pages_bp)
