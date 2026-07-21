@@ -26,3 +26,8 @@ def grouper():
 @pages_bp.route("/quick-links")
 def quick_links():
     return render_template("quick_links.html")
+
+
+@pages_bp.route("/user-lookup")
+def user_lookup():
+    return render_template("user_lookup.html")

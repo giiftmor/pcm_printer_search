@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}PCM Compass - User Lookup{% endblock %}
+{% block header %}User Lookup{% endblock %}
+{% block content %}
+<div class="card">
+    <h3>User Lookup</h3>
+    <p>Enter a user ID to open their IDM or Grouper profile in a new tab.</p>
+
+    <div class="search-group">
+        <input type="text" id="userId" placeholder="e.g. 31408362" autofocus>
+    </div>
+
+    <div class="search-group">
+        <button class="btn btn-primary" onclick="openLookup('idm_consolidation')">
+            IDM Consolidation
+        </button>
+        <button class="btn btn-primary" onclick="openLookup('idm_password')">
+            IDM Password
+        </button>
+        <button class="btn btn-primary" onclick="openLookup('grouper')">
+            Grouper Groups
+        </button>
+    </div>
+</div>
+
+<script>
+async function openLookup(type) {
+    const userId = document.getElementById('userId').value.trim();
+    if (!userId) {
+        alert('Please enter a user ID');
+        return;
+    }
+
+    try {
+        const resp = await fetch(`/api/user-lookup/urls?user_id=${encodeURIComponent(userId)}`);
+        const data = await resp.json();
+
+        if (data.error) {
+            alert(data.error);
+            return;
+        }
+
+        const url = data.urls[type];
+        if (url) {
+            window.open(url, '_blank');
+        }
+    } catch (err) {
+        alert('Error: ' + err.message);
+    }
+}
+
+document.getElementById('userId').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') openLookup('idm_consolidation');
+});
+</script>
+{% endblock %}
