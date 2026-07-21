@@ -32,6 +32,31 @@ function populateDatalist(id, key) {
     });
 }
 
+const IDM_BASE = 'https://idm.nwu.ac.za/profileinfo/profileinfo.jsp';
+const GROUPER_BASE = 'https://grp.nwu.ac.za/grouper/populateSubjectSummary.do';
+
+function buildIDMConsolidationURL(userId) {
+    return `${IDM_BASE}?Menu=Consolidation&USN=${encodeURIComponent(userId)}`;
+}
+
+function buildIDMPasswordURL(userId) {
+    return `${IDM_BASE}?Menu=Pwd&USN=${encodeURIComponent(userId)}`;
+}
+
+function buildGrouperURL(userId) {
+    const params = new URLSearchParams({
+        returnToLinkKey: 'subject.action.return-results',
+        id: userId,
+        typeName: 'person',
+        returnTo: '/doSearchSubjects.do',
+        subjectId: userId,
+        name: userId,
+        subjectType: 'person',
+        sourceId: 'NWUSource'
+    });
+    return `${GROUPER_BASE}?${params.toString()}`;
+}
+
 document.getElementById('printerSearchBtn').addEventListener('click', async () => {
     const v = document.getElementById('printerInput').value.trim();
     if (!v) return;
@@ -45,20 +70,25 @@ document.getElementById('printerOpenBtn').addEventListener('click', async () => 
     chrome.tabs.create({ url: `${appUrl}/printer-search` });
 });
 
-document.getElementById('idmBtn').addEventListener('click', () => {
+document.getElementById('idmConsolidationBtn').addEventListener('click', () => {
     const v = document.getElementById('userIdInput').value.trim();
     if (!v) return;
     saveHistory(STORAGE_KEYS.userId, v);
-    chrome.tabs.create({ url: `https://idm.nwu.ac.za/profileinfo/profileinfo.jsp?Menu=Consolidation&USN=${encodeURIComponent(v)}` });
+    chrome.tabs.create({ url: buildIDMConsolidationURL(v) });
+});
+
+document.getElementById('idmPasswordBtn').addEventListener('click', () => {
+    const v = document.getElementById('userIdInput').value.trim();
+    if (!v) return;
+    saveHistory(STORAGE_KEYS.userId, v);
+    chrome.tabs.create({ url: buildIDMPasswordURL(v) });
 });
 
 document.getElementById('grouperBtn').addEventListener('click', () => {
     const v = document.getElementById('userIdInput').value.trim();
     if (!v) return;
     saveHistory(STORAGE_KEYS.userId, v);
-    chrome.tabs.create({
-        url: `https://grp.nwu.ac.za/grouper/populateSubjectSummary.do?id=${encodeURIComponent(v)}&typeName=person&subjectId=${encodeURIComponent(v)}&name=${encodeURIComponent(v)}&subjectType=person&sourceId=NWUSource0`
-    });
+    chrome.tabs.create({ url: buildGrouperURL(v) });
 });
 
 async function loadQuickLinks() {
@@ -77,7 +107,7 @@ document.getElementById('printerInput').addEventListener('keypress', e => {
     if (e.key === 'Enter') document.getElementById('printerSearchBtn').click();
 });
 document.getElementById('userIdInput').addEventListener('keypress', e => {
-    if (e.key === 'Enter') document.getElementById('idmBtn').click();
+    if (e.key === 'Enter') document.getElementById('idmConsolidationBtn').click();
 });
 
 document.getElementById('settingsBtn').addEventListener('click', () => {
