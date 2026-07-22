@@ -41,4 +41,5 @@
 - 2026-07-21: Removed AES-GCM credential encryption from `core/auth.py` (kept bcrypt admin auth)
 
 ### Fixed
-- 2026-07-20: Removed legacy monolithic templates/index.html (replaced by dashboard.html and module-specific templates)
+- 2026-07-22: Extension tab navigation — IDM/Grouper buttons now pass real URLs to `chrome.tabs.create()` instead of wildcard patterns
+- 2026-07-22: Docker build — added `zip` package to production image, made Nextcloud upload optional (skipped when curl unavailable)

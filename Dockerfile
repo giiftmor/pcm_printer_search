@@ -22,6 +22,9 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 # Fix numpy/pandas binary incompatibility by reinstalling both
 RUN pip install --no-cache-dir --upgrade --force-reinstall numpy pandas
 
+# Install zip for extension build
+RUN apt-get update && apt-get install -y --no-install-recommends zip && rm -rf /var/lib/apt/lists/*
+
 # Copy application files
 COPY app.py config.py ./
 COPY core/ ./core/

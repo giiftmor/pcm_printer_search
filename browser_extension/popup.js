@@ -32,14 +32,14 @@ function populateDatalist(id, key) {
     });
 }
 
-async function findOrCreateTab(urlPattern) {
+async function findOrCreateTab(urlPattern, realUrl) {
     const tabs = await chrome.tabs.query({ url: urlPattern });
     if (tabs.length > 0) {
         await chrome.tabs.update(tabs[0].id, { active: true });
         await chrome.windows.update(tabs[0].windowId, { focused: true });
         return tabs[0];
     }
-    return chrome.tabs.create({ url: urlPattern });
+    return chrome.tabs.create({ url: realUrl || urlPattern });
 }
 
 const IDM_BASE = 'https://idm.nwu.ac.za/profileinfo/profileinfo.jsp';
@@ -84,21 +84,24 @@ document.getElementById('idmConsolidationBtn').addEventListener('click', () => {
     const v = document.getElementById('userIdInput').value.trim();
     if (!v) return;
     saveHistory(STORAGE_KEYS.userId, v);
-    findOrCreateTab(`*://idm.nwu.ac.za/profileinfo/profileinfo.jsp*USN=${encodeURIComponent(v)}*`);
+    const url = buildIDMConsolidationURL(v);
+    findOrCreateTab(`*://idm.nwu.ac.za/profileinfo/profileinfo.jsp*USN=${encodeURIComponent(v)}*`, url);
 });
 
 document.getElementById('idmPasswordBtn').addEventListener('click', () => {
     const v = document.getElementById('userIdInput').value.trim();
     if (!v) return;
     saveHistory(STORAGE_KEYS.userId, v);
-    findOrCreateTab(`*://idm.nwu.ac.za/profileinfo/profileinfo.jsp*USN=${encodeURIComponent(v)}*`);
+    const url = buildIDMPasswordURL(v);
+    findOrCreateTab(`*://idm.nwu.ac.za/profileinfo/profileinfo.jsp*USN=${encodeURIComponent(v)}*`, url);
 });
 
 document.getElementById('grouperBtn').addEventListener('click', () => {
     const v = document.getElementById('userIdInput').value.trim();
     if (!v) return;
     saveHistory(STORAGE_KEYS.userId, v);
-    findOrCreateTab(`*://grp.nwu.ac.za/grouper/populateSubjectSummary.do*${encodeURIComponent(v)}*`);
+    const url = buildGrouperURL(v);
+    findOrCreateTab(`*://grp.nwu.ac.za/grouper/populateSubjectSummary.do*${encodeURIComponent(v)}*`, url);
 });
 
 const DEFAULT_LINKS = [

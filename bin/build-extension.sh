@@ -28,19 +28,23 @@ cd "$ROOT_DIR"
 
 echo "Built: $DIST_DIR/$ZIP_NAME ($(du -h "$DIST_DIR/$ZIP_NAME" | cut -f1))"
 
-# Upload to Nextcloud public share (upload-enabled)
-echo "Uploading to Nextcloud..."
-AUTH_HEADER="Authorization: Basic $(echo -n "${NEXTCLOUD_SHARE_TOKEN}:" | base64)"
-HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
-    -T "$DIST_DIR/$ZIP_NAME" \
-    "${NEXTCLOUD_WEBDAV}/${ZIP_NAME}" \
-    -H "$AUTH_HEADER")
+# Upload to Nextcloud public share (upload-enabled) — skip if curl not available
+if command -v curl &> /dev/null; then
+    echo "Uploading to Nextcloud..."
+    AUTH_HEADER="Authorization: Basic $(echo -n "${NEXTCLOUD_SHARE_TOKEN}:" | base64)"
+    HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+        -T "$DIST_DIR/$ZIP_NAME" \
+        "${NEXTCLOUD_WEBDAV}/${ZIP_NAME}" \
+        -H "$AUTH_HEADER")
 
-if [ "$HTTP_CODE" = "201" ] || [ "$HTTP_CODE" = "204" ]; then
-    echo "Uploaded: https://nextcloud.nwu.ac.za/index.php/s/${NEXTCLOUD_SHARE_TOKEN}"
+    if [ "$HTTP_CODE" = "201" ] || [ "$HTTP_CODE" = "204" ]; then
+        echo "Uploaded: https://nextcloud.nwu.ac.za/index.php/s/${NEXTCLOUD_SHARE_TOKEN}"
+    else
+        echo "Upload failed (HTTP $HTTP_CODE)"
+        exit 1
+    fi
 else
-    echo "Upload failed (HTTP $HTTP_CODE)"
-    exit 1
+    echo "curl not found — skipping Nextcloud upload (run bin/build-extension.sh on host to upload)"
 fi
 
 echo "Done."
