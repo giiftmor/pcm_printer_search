@@ -19,6 +19,7 @@
 - 2026-07-20: Flask page routes blueprint (templates/routes.py) for dashboard, printer search, user lookup, quick links, download extension
 
 ### Changed
+- 2026-07-22: Extension distribution — individual files uploaded to `pcm-compass/` subfolder, ZIP + docs in root of Nextcloud share
 - 2026-07-21: Extension v2.1.0 — tab reuse, offline quick links, SVCP links
 - 2026-07-21: Dockerfile updated — includes browser_extension/, runs build script during Docker build
 - 2026-07-21: docker-compose.yml — mounts static/dist/ for persistent extension packages
