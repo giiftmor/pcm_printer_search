@@ -213,3 +213,50 @@ body {
     .sidebar-nav a span { display: none; }
     .main { margin-left: 60px; }
 }
+
+/* Lookup results */
+.error-box {
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+    border-radius: 6px;
+    padding: 12px 16px;
+    color: #721c24;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+}
+
+.data-table td {
+    padding: 8px 12px;
+    border: 1px solid #e0e0e0;
+}
+
+.data-table td.label {
+    font-weight: 600;
+    background: #f8f9fa;
+    width: 30%;
+    color: #555;
+}
+
+.group-list {
+    margin: 12px 0;
+    padding-left: 20px;
+}
+
+.group-list li {
+    padding: 4px 0;
+    font-size: 14px;
+    color: #333;
+}
+
+.svcp-link {
+    color: var(--nwu-green);
+    text-decoration: none;
+}
+.svcp-link:hover {
+    text-decoration: underline;
+    color: var(--nwu-green-light);
+}

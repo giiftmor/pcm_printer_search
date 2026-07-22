@@ -32,6 +32,16 @@ function populateDatalist(id, key) {
     });
 }
 
+async function findOrCreateTab(urlPattern) {
+    const tabs = await chrome.tabs.query({ url: urlPattern });
+    if (tabs.length > 0) {
+        await chrome.tabs.update(tabs[0].id, { active: true });
+        await chrome.windows.update(tabs[0].windowId, { focused: true });
+        return tabs[0];
+    }
+    return chrome.tabs.create({ url: urlPattern });
+}
+
 const IDM_BASE = 'https://idm.nwu.ac.za/profileinfo/profileinfo.jsp';
 const GROUPER_BASE = 'https://grp.nwu.ac.za/grouper/populateSubjectSummary.do';
 
@@ -62,44 +72,55 @@ document.getElementById('printerSearchBtn').addEventListener('click', async () =
     if (!v) return;
     saveHistory(STORAGE_KEYS.printer, v);
     const appUrl = await getAppUrl();
-    chrome.tabs.create({ url: `${appUrl}/printer-search?q=${encodeURIComponent(v)}` });
+    findOrCreateTab(`${appUrl}/printer-search?q=${encodeURIComponent(v)}`);
 });
 
 document.getElementById('printerOpenBtn').addEventListener('click', async () => {
     const appUrl = await getAppUrl();
-    chrome.tabs.create({ url: `${appUrl}/printer-search` });
+    findOrCreateTab(`${appUrl}/printer-search`);
 });
 
 document.getElementById('idmConsolidationBtn').addEventListener('click', () => {
     const v = document.getElementById('userIdInput').value.trim();
     if (!v) return;
     saveHistory(STORAGE_KEYS.userId, v);
-    chrome.tabs.create({ url: buildIDMConsolidationURL(v) });
+    findOrCreateTab(`*://idm.nwu.ac.za/profileinfo/profileinfo.jsp*USN=${encodeURIComponent(v)}*`);
 });
 
 document.getElementById('idmPasswordBtn').addEventListener('click', () => {
     const v = document.getElementById('userIdInput').value.trim();
     if (!v) return;
     saveHistory(STORAGE_KEYS.userId, v);
-    chrome.tabs.create({ url: buildIDMPasswordURL(v) });
+    findOrCreateTab(`*://idm.nwu.ac.za/profileinfo/profileinfo.jsp*USN=${encodeURIComponent(v)}*`);
 });
 
 document.getElementById('grouperBtn').addEventListener('click', () => {
     const v = document.getElementById('userIdInput').value.trim();
     if (!v) return;
     saveHistory(STORAGE_KEYS.userId, v);
-    chrome.tabs.create({ url: buildGrouperURL(v) });
+    findOrCreateTab(`*://grp.nwu.ac.za/grouper/populateSubjectSummary.do*${encodeURIComponent(v)}*`);
 });
+
+const DEFAULT_LINKS = [
+    { name: 'SVCP Portal', url: 'https://svcp.nwu.ac.za', icon: '🖨️' },
+    { name: 'PaperCut Admin', url: 'https://papercut.nwu.ac.za', icon: '📊' },
+    { name: 'IDM', url: 'https://idm.nwu.ac.za', icon: '👤' },
+    { name: 'Grouper', url: 'https://grp.nwu.ac.za/grouper/', icon: '👥' },
+];
+
+function renderLinks(links) {
+    const grid = document.getElementById('quickLinks');
+    grid.innerHTML = links.map(l => `<a href="${l.url}" target="_blank">${l.icon} ${l.name}</a>`).join('');
+}
 
 async function loadQuickLinks() {
     try {
         const appUrl = await getAppUrl();
         const res = await fetch(`${appUrl}/api/links`);
         const links = await res.json();
-        const grid = document.getElementById('quickLinks');
-        grid.innerHTML = links.map(l => `<a href="${l.url}" target="_blank">${l.icon} ${l.name}</a>`).join('');
+        renderLinks(links);
     } catch {
-        document.getElementById('quickLinks').innerHTML = '<span style="color:#999;font-size:12px;">Could not load links</span>';
+        renderLinks(DEFAULT_LINKS);
     }
 }
 

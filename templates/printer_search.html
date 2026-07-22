@@ -78,7 +78,14 @@ function performSearch() {
         html += '</tr></thead><tbody>';
         data.forEach(row => {
             html += '<tr>';
-            columnOrder.forEach(c => html += `<td>${row[c] || ''}</td>`);
+            columnOrder.forEach(c => {
+                if (c === 'Printer Hostname' && row[c]) {
+                    const h = row[c];
+                    html += `<td><a href="https://${h}.svcp.nwu.ac.za" target="_blank" class="svcp-link">${h}</a></td>`;
+                } else {
+                    html += `<td>${row[c] || ''}</td>`;
+                }
+            });
             html += '</tr>';
         });
         html += '</tbody></table>';

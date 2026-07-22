@@ -5,6 +5,7 @@ services:
       - "5000:5000"
     volumes:
       - ./workbook_url.txt:/app/workbook_url.txt:ro
+      - ./static/dist:/app/static/dist
     env_file:
       - .env
     restart: unless-stopped

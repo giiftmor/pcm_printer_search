@@ -30,6 +30,11 @@ COPY templates/ ./templates/
 COPY static/ ./static/
 COPY .env.example .
 
+# Copy browser extension and build package
+COPY browser_extension/ ./browser_extension/
+COPY bin/build-extension.sh ./bin/build-extension.sh
+RUN mkdir -p static/dist && chmod +x bin/build-extension.sh && bin/build-extension.sh
+
 # Create non-root user for security
 RUN useradd --create-home appuser && chown -R appuser:appuser /app
 USER appuser
