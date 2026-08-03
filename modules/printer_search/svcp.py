@@ -23,3 +23,11 @@ def build_svcp_url(hostname: Optional[str]) -> Optional[str]:
         if not _LABEL_RE.match(label):
             return None
     return f"https://{name}.{SVCP_DOMAIN}"
+
+
+def enrich_row_with_svcp(row: dict) -> dict:
+    url = build_svcp_url(row.get("Printer Hostname"))
+    if url:
+        row = dict(row)
+        row["svcp_url"] = url
+    return row
