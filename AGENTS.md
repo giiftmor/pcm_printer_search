@@ -1,33 +1,81 @@
 # PCM Compass — Agent Instructions
 
+## Purpose
+
+PCM Compass (repo dir `pcm_printer_search`) is a **multi-functional IT helpdesk toolkit** for the **NWU PCM (Potchefstroom) IT Service Desk**. It replaces the old PCM Printer Search monolith with a modular Flask dashboard plus a Chrome extension (MV3) that together consolidate the desk's daily tools: printer inventory search, user lookup (IDM/Grouper), quick links to NWU portals, and browser-extension distribution. Branding is NWU green (`#006633`).
+
 ## Running the App
 
 ```bash
-docker compose up -d    # Flask app on port 5000
+docker compose up -d    # Flask app on port 5000 (prod: gunicorn, 4 workers)
 docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d  # Dev mode
 python app.py           # Local dev without Docker
+./bin/switch.sh dev|prod|rebuild|status|logs|stop   # Mode switcher (writes .mode)
 ```
 
-## Project Structure
+- Extension build/upload: `./bin/build-extension.sh` → ZIPs `browser_extension/` to `static/dist/pcm-compass-v{version}.zip`, optionally uploads to Nextcloud WebDAV.
+- Env config via `.env` (see `.env.example`): `FLASK_SECRET_KEY`, `ADMIN_PASSWORD`, `WORKBOOK_URL`, `DATA_REFRESH_INTERVAL`, `QUICK_LINKS_FILE`.
+
+## Project Structure (current)
 
 ```
-app.py              # Flask app factory + dev server
+app.py              # Flask app factory (create_app) + dev server
 config.py           # Config class (env-driven)
-core/               # Shared utilities (auth, helpers)
-modules/            # Feature blueprints
-  printer_search/   # Printer search module
-  idm_lookup/       # IDM lookup module
-  grouper/          # Grouper module
-  quick_links/      # Quick links module
-templates/          # Page routes + Jinja templates
-static/             # CSS, JS, images
-browser_extension/  # Chrome extension (Manifest V3)
-docs/               # Design specs and documentation
+core/auth.py        # bcrypt admin auth + admin_required session guard
+modules/            # Feature blueprints (each self-contained)
+  printer_search/   # engine.py: Excel load/search + 60s auto-reload thread; routes.py: search + admin CRUD/login
+  quick_links/      # engine.py: JSON-file CRUD; routes.py: /api/links
+  user_lookup/      # urls.py: URL builders (IDM Consolidation/Password, Grouper); routes.py: /api/user-lookup/urls
+templates/          # routes.py: page routes; base.html + per-page Jinja templates
+static/             # compass.css, compass.js, dist/ (extension ZIPs)
+browser_extension/  # Chrome extension (Manifest V3) — popup + build docs
+docs/               # Design specs and plans (docs/superpowers/)
+.opencode/plans/    # Implementation plans
+.superpowers/sdd/   # Subagent-driven-development task briefs/reports/progress
+major-improvements-implementation-status.md  # Tests/CI/hardening program tracking
 ```
+
+> Note: `modules/idm_lookup/` and `modules/grouper/` were deleted — replaced by the single `user_lookup` module that constructs URLs and opens the real NWU pages in browser tabs (browser-native auth, no credentials stored).
 
 ## Tech Stack
 
-Python 3.11, Flask, Pandas, openpyxl, Gunicorn, Docker, Chrome Extension (Manifest V3)
+- **Backend:** Python 3.11, Flask 2.x, Pandas + openpyxl (Excel), requests, bcrypt, gunicorn, python-dotenv
+- **Frontend:** Jinja2 server-rendered templates, vanilla JS (no frameworks), custom CSS
+- **Extension:** Chrome Manifest V3, vanilla JS, `chrome.storage.local` (history + app URL only)
+- **Deploy:** Docker multi-stage build, Docker Compose (prod + dev overlays), Nextcloud WebDAV for distribution
+- **Tests/CI:** None yet — **planned** (see `major-improvements-implementation-status.md`)
+
+## API Endpoints
+
+| Method | Path | Auth | Purpose |
+|--------|------|------|---------|
+| POST | `/api/printer/search` | none | Search all Excel sheets (form field `search_term`) |
+| GET | `/api/printer/last-update` | none | Excel data timestamp |
+| GET | `/api/admin/status` | none | Is current session admin? |
+| POST | `/api/admin/login` | none | Admin password login (bcrypt, session) |
+| POST | `/api/admin/logout` | none | Clear admin session |
+| GET | `/api/admin/get_url` | admin | Saved workbook URL |
+| POST | `/api/admin/update_url` | admin | Update workbook URL + reload data |
+| POST | `/api/admin/reload_data` | admin | Force Excel reload |
+| GET | `/api/links` | none | List quick links |
+| POST | `/api/links` | admin | Add quick link (JSON: name, url, icon) |
+| DELETE | `/api/links/<id>` | admin | Remove quick link |
+| GET | `/api/user-lookup/urls?user_id=X` | none | Return IDM/Grouper URLs for a user |
+
+Pages: `/` (dashboard), `/printer-search`, `/quick-links`, `/user-lookup`, `/download-extension`, `/download-extension/zip`.
+
+## Security Model
+
+- **No NWU credentials stored anywhere** — IDM/Grouper use browser-native auth; extension only holds the Flask app URL + local search history.
+- Admin auth: single password (bcrypt-hashed at startup from `ADMIN_PASSWORD`), Flask session cookie.
+- **Known gaps under hardening** (tracked in `major-improvements-implementation-status.md`): a plaintext NWU password exists in git history (old docs), a hardcoded Nextcloud share token in `bin/build-extension.sh`, default admin password fallback, no CSRF protection, no rate limiting on login, dependency ranges unpinned. Do NOT introduce new hardcoded secrets.
+
+## Development Workflow
+
+- **Test/lint first:** No test suite or CI exists yet — this is the active improvement program. Prefer writing/updating tests in the same change as code (see status doc). Verify with `python app.py` boot + `flask test_client` smoke checks until `bin/test.sh` exists.
+- **Module pattern:** each feature = `modules/<name>/` with `engine.py` (logic) + `routes.py` (blueprint) + `__init__.py`; page templates extend `templates/base.html`.
+- **Conventions:** JSON endpoints prefixed `/api/`; vanilla JS only; NWU green `#006633`/`#4a8c6f`; no external JS frameworks.
+- **Planning:** larger work goes through superpowers — spec in `docs/superpowers/specs/`, plan in `.opencode/plans/` (or `docs/superpowers/plans/`), execute via subagent-driven development with task briefs/reports under `.superpowers/sdd/`. Commit per task.
 
 ## 📝 Changelog
 

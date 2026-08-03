@@ -3,6 +3,8 @@
 ## [Unreleased]
 
 ### Added
+- 2026-08-03: `major-improvements-implementation-status.md` — program tracking for tests, CI, and security hardening (baseline audit + findings + planned streams)
+- 2026-08-03: AGENTS.md overhauled — current module structure, API endpoint table, security model, and hardening-gap tracking
 - 2026-07-21: Extension build script (`bin/build-extension.sh`) — packages extension as ZIP, uploads to Nextcloud WebDAV
 - 2026-07-21: Extension download page (`/download-extension`) with install instructions for Chrome, Edge, Brave, Opera, Firefox
 - 2026-07-21: Extension tab reuse — IDM and Grouper buttons switch to existing tabs instead of opening duplicates
