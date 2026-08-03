@@ -39,10 +39,33 @@
         }
     }
 
+    // keep in sync with modules/printer_search/svcp.py
+    const SVCP_DOMAIN = 'svcp.nwu.ac.za';
+    const NWU_SUFFIX = '.nwu.ac.za';
+    const LABEL_RE = /^(?!-)[a-z0-9-]{1,63}(?<!-)$/;
+
+    function buildSvcpUrl(hostname) {
+        if (typeof hostname !== 'string') return null;
+        let name = hostname.trim().toLowerCase();
+        if (!name || name.includes('://') || name.includes('/') || /\s/.test(name)) return null;
+        const svcpSuffix = '.' + SVCP_DOMAIN;
+        if (name.endsWith(svcpSuffix)) {
+            name = name.slice(0, -svcpSuffix.length);
+        } else if (name.endsWith(NWU_SUFFIX)) {
+            name = name.split('.')[0];
+        }
+        if (!name || name.length > 253) return null;
+        for (const label of name.split('.')) {
+            if (!LABEL_RE.test(label)) return null;
+        }
+        return 'https://' + name + '.' + SVCP_DOMAIN;
+    }
+
     return {
         buildIDMConsolidationURL: buildIDMConsolidationURL,
         buildIDMPasswordURL: buildIDMPasswordURL,
         buildGrouperURL: buildGrouperURL,
-        matchesPrefix: matchesPrefix
+        matchesPrefix: matchesPrefix,
+        buildSvcpUrl: buildSvcpUrl
     };
 }));

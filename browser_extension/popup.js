@@ -67,6 +67,18 @@ document.getElementById('printerOpenBtn').addEventListener('click', async () => 
     findOrCreateTab(`${appUrl}/printer-search`, p);
 });
 
+document.getElementById('printerSvcpBtn').addEventListener('click', () => {
+    const v = document.getElementById('printerInput').value.trim();
+    if (!v) return;
+    const url = PCM_URL_HELPERS.buildSvcpUrl(v);
+    if (!url) {
+        alert('Invalid printer hostname');
+        return;
+    }
+    saveHistory(STORAGE_KEYS.printer, v);
+    findOrCreateTab(url, { hostPattern: '*://*.svcp.nwu.ac.za/*', pathPrefix: '/' });
+});
+
 document.getElementById('idmConsolidationBtn').addEventListener('click', () => {
     const v = document.getElementById('userIdInput').value.trim();
     if (!v) return;
