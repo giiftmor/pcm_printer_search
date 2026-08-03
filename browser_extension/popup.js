@@ -32,39 +32,24 @@ function populateDatalist(id, key) {
     });
 }
 
-async function findOrCreateTab(urlPattern, realUrl) {
-    const tabs = await chrome.tabs.query({ url: urlPattern });
-    if (tabs.length > 0) {
-        await chrome.tabs.update(tabs[0].id, { active: true });
-        await chrome.windows.update(tabs[0].windowId, { focused: true });
-        return tabs[0];
+async function findOrCreateTab(realUrl, opts) {
+    const tabs = await chrome.tabs.query({ url: opts.hostPattern });
+    const target = tabs.find(t => PCM_URL_HELPERS.matchesPrefix(t.url, opts.pathPrefix));
+    if (target) {
+        await chrome.tabs.update(target.id, { url: realUrl, active: true });
+        await chrome.windows.update(target.windowId, { focused: true });
+        return target;
     }
-    return chrome.tabs.create({ url: realUrl || urlPattern });
+    return chrome.tabs.create({ url: realUrl });
 }
 
-const IDM_BASE = 'https://idm.nwu.ac.za/profileinfo/profileinfo.jsp';
-const GROUPER_BASE = 'https://grp.nwu.ac.za/grouper/populateSubjectSummary.do';
-
-function buildIDMConsolidationURL(userId) {
-    return `${IDM_BASE}?Menu=Consolidation&USN=${encodeURIComponent(userId)}`;
-}
-
-function buildIDMPasswordURL(userId) {
-    return `${IDM_BASE}?Menu=Pwd&USN=${encodeURIComponent(userId)}`;
-}
-
-function buildGrouperURL(userId) {
-    const params = new URLSearchParams({
-        returnToLinkKey: 'subject.action.return-results',
-        id: userId,
-        typeName: 'person',
-        returnTo: '/doSearchSubjects.do',
-        subjectId: userId,
-        name: userId,
-        subjectType: 'person',
-        sourceId: 'NWUSource'
-    });
-    return `${GROUPER_BASE}?${params.toString()}`;
+async function printerHostPattern() {
+    const appUrl = await getAppUrl();
+    try {
+        return { hostPattern: `*://${new URL(appUrl).host}/*`, pathPrefix: '/printer-search' };
+    } catch (e) {
+        return { hostPattern: '*://*/*', pathPrefix: '/printer-search' };
+    }
 }
 
 document.getElementById('printerSearchBtn').addEventListener('click', async () => {
@@ -72,36 +57,38 @@ document.getElementById('printerSearchBtn').addEventListener('click', async () =
     if (!v) return;
     saveHistory(STORAGE_KEYS.printer, v);
     const appUrl = await getAppUrl();
-    findOrCreateTab(`${appUrl}/printer-search?q=${encodeURIComponent(v)}`);
+    const p = await printerHostPattern();
+    findOrCreateTab(`${appUrl}/printer-search?q=${encodeURIComponent(v)}`, p);
 });
 
 document.getElementById('printerOpenBtn').addEventListener('click', async () => {
     const appUrl = await getAppUrl();
-    findOrCreateTab(`${appUrl}/printer-search`);
+    const p = await printerHostPattern();
+    findOrCreateTab(`${appUrl}/printer-search`, p);
 });
 
 document.getElementById('idmConsolidationBtn').addEventListener('click', () => {
     const v = document.getElementById('userIdInput').value.trim();
     if (!v) return;
     saveHistory(STORAGE_KEYS.userId, v);
-    const url = buildIDMConsolidationURL(v);
-    findOrCreateTab(`*://idm.nwu.ac.za/profileinfo/profileinfo.jsp*USN=${encodeURIComponent(v)}*`, url);
+    const url = PCM_URL_HELPERS.buildIDMConsolidationURL(v);
+    findOrCreateTab(url, { hostPattern: '*://idm.nwu.ac.za/*', pathPrefix: '/profileinfo' });
 });
 
 document.getElementById('idmPasswordBtn').addEventListener('click', () => {
     const v = document.getElementById('userIdInput').value.trim();
     if (!v) return;
     saveHistory(STORAGE_KEYS.userId, v);
-    const url = buildIDMPasswordURL(v);
-    findOrCreateTab(`*://idm.nwu.ac.za/profileinfo/profileinfo.jsp*USN=${encodeURIComponent(v)}*`, url);
+    const url = PCM_URL_HELPERS.buildIDMPasswordURL(v);
+    findOrCreateTab(url, { hostPattern: '*://idm.nwu.ac.za/*', pathPrefix: '/profileinfo' });
 });
 
 document.getElementById('grouperBtn').addEventListener('click', () => {
     const v = document.getElementById('userIdInput').value.trim();
     if (!v) return;
     saveHistory(STORAGE_KEYS.userId, v);
-    const url = buildGrouperURL(v);
-    findOrCreateTab(`*://grp.nwu.ac.za/grouper/populateSubjectSummary.do*${encodeURIComponent(v)}*`, url);
+    const url = PCM_URL_HELPERS.buildGrouperURL(v);
+    findOrCreateTab(url, { hostPattern: '*://grp.nwu.ac.za/*', pathPrefix: '/grouper/' });
 });
 
 const DEFAULT_CATEGORIES = [

@@ -30,7 +30,7 @@ rm -f "$DIST_DIR/$ZIP_NAME"
 # Create ZIP (exclude README.md, INSTALL.md, __pycache__)
 cd "$EXT_DIR"
 zip -r "$DIST_DIR/$ZIP_NAME" . \
-    -x "README.md" "INSTALL.md" "*__pycache__*" "*.pyc"
+    -x "README.md" "INSTALL.md" "*__pycache__*" "*.pyc" "*.test.js"
 cd "$ROOT_DIR"
 
 echo "Built: $DIST_DIR/$ZIP_NAME ($(du -h "$DIST_DIR/$ZIP_NAME" | cut -f1))"
