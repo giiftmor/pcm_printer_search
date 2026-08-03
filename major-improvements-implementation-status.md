@@ -21,7 +21,7 @@ PCM Compass is a production-deployed internal IT helpdesk toolkit (Flask dashboa
 ### Gaps identified
 | Area | Current state | Risk |
 |------|--------------|------|
-| Tests | None. No test framework, no test files, no `tests/` dir | High — regressions are silent |
+| Tests | Partial. `tests/` has pytest suites (quick links, SVCP URL builder/enrichment, `/api/status`) + `node --test` for extension `url_helpers.js`; run via Docker `pcm-test` image (host has no usable Python) | Medium — coverage gaps remain (see Stream 1) |
 | CI | None. No GitHub Actions / no lint / no typecheck / no format check | High — nothing gates merges |
 | Security | See hardening backlog below | High — see findings |
 
@@ -53,18 +53,23 @@ Planned work:
   - auto-reload thread behavior (short interval, mock loader)
 - ⬜ Unit tests for `modules/user_lookup/urls.py` — URL construction + quoting for the 3 builders
 - ✅ Unit tests for `modules/quick_links/engine.py` — CRUD, defaults, persistence, legacy migration
+- ✅ Unit tests for `modules/printer_search/svcp.py` — `build_svcp_url` hostname sanitization (12 param cases) + `search_all_sheets` `svcp_url` enrichment + non-mutation of input rows (`test_printer_svcp.py`, `test_printer_search_svcp_enrichment.py`)
+- ✅ Unit tests for `browser_extension/url_helpers.js` — IDM/Grouper URL builders, `matchesPrefix` tab-reuse matcher (query-string invisible to Chrome match patterns), `buildSvcpUrl` mirroring the Python rules (`tests/url_helpers.test.js`, run via host `node --test`)
 - ⬜ Unit tests for `core/auth.py` — hash/check round-trip, `admin_required` guard
 - ⬜ Flask integration tests via `app.test_client()`:
   - `POST /api/printer/search` (hit + miss + empty term)
   - `GET /api/printer/last-update`
   - `/api/user-lookup/urls` (valid + missing user_id)
   - ✅ `/api/links` GET/POST/DELETE + category endpoints (incl. admin-required 403)
+  - ✅ `GET /api/status` — returns app + extension versions; `app_version` matches the `VERSION` file
   - `/api/admin/login` success/failure, `/api/admin/status`, protected endpoints
   - Page routes render (dashboard, printer-search, quick-links, user-lookup, download-extension)
 - ⬜ Templating safety test: assert user-supplied `q` is escaped (no XSS via `?q=` on printer-search)
 - ⬜ Test fixture strategy: local sample Excel (multi-sheet) instead of hitting Nextcloud
 
 **Success criteria:** `pytest` green locally and in CI; no network dependency in the test suite.
+
+> **How tests run today (host has no usable Python):** pytest in the Docker `pcm-test` image (`docker run --rm -v "$PWD:/app" -w /app pcm-test bash -c "pip install -q pytest && python -m pytest -p no:cacheprovider -q"`); always append `-p no:cacheprovider` so no root-owned `.pytest_cache` is left on the host volume. Extension JS via host `node --test tests/url_helpers.test.js`.
 
 ### Stream 2 — Continuous Integration ⬜
 
@@ -118,3 +123,5 @@ Follow repo conventions established in previous work:
 |------|--------|------|--------|
 | 2026-08-03 | — | Baseline audit + this document | ✅ |
 | 2026-08-03 | Stream 0 | Quick Links categorization | ✅ |
+| 2026-08-03 | Stream 0 (follow-up) | SVCP as a shared function + printer web links, extension tab-reuse fix, independent app/extension versioning | ✅ |
+| 2026-08-03 | Stream 1 | SVCP URL-builder + enrichment tests, `/api/status` test, `url_helpers.js` node tests | ✅ |
