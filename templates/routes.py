@@ -1,9 +1,31 @@
 import os
 import glob
+import json
 import time
 from flask import Blueprint, render_template, send_file
+from config import Config
 
 pages_bp = Blueprint("pages", __name__)
+
+
+def _extension_manifest_version():
+    manifest_path = os.path.join(
+        os.path.dirname(os.path.dirname(__file__)), "browser_extension", "manifest.json"
+    )
+    try:
+        with open(manifest_path) as f:
+            return json.load(f).get("version", "0.0.0")
+    except (IOError, ValueError):
+        return "0.0.0"
+
+
+@pages_bp.route("/api/status")
+def api_status():
+    return {
+        "name": "PCM Compass",
+        "app_version": Config.APP_VERSION,
+        "extension_version": _extension_manifest_version(),
+    }
 
 
 @pages_bp.route("/")
@@ -30,7 +52,7 @@ def user_lookup():
 def download_extension():
     dist_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static", "dist")
     zips = sorted(glob.glob(os.path.join(dist_dir, "pcm-compass-v*.zip")), reverse=True)
-    version = "2.1.0"
+    version = _extension_manifest_version()
     date = ""
     if zips:
         fname = os.path.basename(zips[0])

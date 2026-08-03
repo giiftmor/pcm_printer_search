@@ -7,6 +7,7 @@ import time
 import logging
 from datetime import datetime
 from config import Config
+from modules.printer_search.svcp import enrich_row_with_svcp
 
 logger = logging.getLogger(__name__)
 
@@ -81,7 +82,8 @@ def search_all_sheets(search_term):
 
         results_df = pd.concat(all_results, ignore_index=True)
         results_df = results_df.map(str).replace("nan", "")
-        return results_df.to_dict(orient="records")
+        records = results_df.to_dict(orient="records")
+        return [enrich_row_with_svcp(r) for r in records]
 
 
 def auto_reload_data():

@@ -50,6 +50,14 @@ function updateLastUpdateTime() {
         });
 }
 
+function escapeHtml(s) {
+    return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
 function performSearch() {
     const term = document.getElementById('search-term').value.trim();
     if (!term) return;
@@ -79,11 +87,11 @@ function performSearch() {
         data.forEach(row => {
             html += '<tr>';
             columnOrder.forEach(c => {
-                if (c === 'Printer Hostname' && row[c]) {
-                    const h = row[c];
-                    html += `<td><a href="https://${h}.svcp.nwu.ac.za" target="_blank" class="svcp-link">${h}</a></td>`;
+                const value = row[c] || '';
+                if (c === 'Printer Hostname' && row.svcp_url) {
+                    html += `<td><a href="${escapeHtml(row.svcp_url)}" target="_blank" rel="noopener noreferrer" class="svcp-link">${escapeHtml(value)}</a></td>`;
                 } else {
-                    html += `<td>${row[c] || ''}</td>`;
+                    html += `<td>${escapeHtml(value)}</td>`;
                 }
             });
             html += '</tr>';
