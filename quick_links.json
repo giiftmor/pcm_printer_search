@@ -1,0 +1,48 @@
+{
+  "categories": [
+    {
+      "id": "seed-portals",
+      "name": "Portals",
+      "links": [
+        { "id": "seed-portal-scsm", "name": "SCSM Support Portal", "url": "https://support.nwu.ac.za/View/HomePage#/", "icon": "🎫" },
+        { "id": "seed-portal-scopserve", "name": "Scopserve", "url": "http://143.160.36.111:5555/reports/telephony.php", "icon": "📞" }
+      ]
+    },
+    {
+      "id": "seed-printing",
+      "name": "Printing",
+      "links": [
+        { "id": "seed-print-svcp", "name": "SVCP Portal", "url": "https://svcp.nwu.ac.za", "icon": "🖨️" },
+        { "id": "seed-print-papercut", "name": "PaperCut Admin Portal", "url": "http://v-pcut-win1.nwu.ac.za:9191/app", "icon": "🖨️" }
+      ]
+    },
+    {
+      "id": "seed-identity",
+      "name": "Identity",
+      "links": [
+        { "id": "seed-identity-idm", "name": "IDM", "url": "https://idm.nwu.ac.za", "icon": "👤" },
+        { "id": "seed-identity-grouper", "name": "Grouper", "url": "https://grp.nwu.ac.za/grouper/", "icon": "👥" },
+        { "id": "seed-identity-entra", "name": "Microsoft Entra", "url": "https://entra.microsoft.com/#home", "icon": "🪪" }
+      ]
+    },
+    {
+      "id": "seed-omnia",
+      "name": "SIS (Omnia)",
+      "links": [
+        { "id": "seed-omnia-reset", "name": "Omnia (SIS Password Reset)", "url": "https://omnia.nwu.ac.za/omnia/send_sis_password_info", "icon": "🔑" },
+        { "id": "seed-omnia-profile", "name": "Omnia (SIS Profile Overview)", "url": "https://omnia.nwu.ac.za/omnia/get_sis_provisioning_info_page", "icon": "📋" }
+      ]
+    },
+    {
+      "id": "seed-nac",
+      "name": "NAC",
+      "links": [
+        { "id": "seed-nac-man", "name": "MAN NAC", "url": "https://196.252.138.240:8443/gui/hosts/view", "icon": "🌐" },
+        { "id": "seed-nac-1b-lan", "name": "NAC 1 (Campus B) LAN", "url": "https://196.252.138.242:8443/gui/hosts/adapters", "icon": "🏛️" },
+        { "id": "seed-nac-1b-wifi", "name": "NAC 1 (Campus B) WIFI", "url": "https://196.252.138.241:8443/gui/hosts/view", "icon": "📶" },
+        { "id": "seed-nac-2a-lan", "name": "NAC 2 (Campus A) LAN", "url": "https://196.252.138.243:8443/gui/hosts/adapters", "icon": "🏛️" },
+        { "id": "seed-nac-2a-wifi", "name": "NAC 2 (Campus A) WIFI", "url": "https://196.252.138.244:8443/gui/hosts/view", "icon": "📶" }
+      ]
+    }
+  ]
+}

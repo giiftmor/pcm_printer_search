@@ -29,6 +29,17 @@ PCM Compass is a production-deployed internal IT helpdesk toolkit (Flask dashboa
 
 Three workstreams. Each becomes its own plan (`.opencode/plans/` or `docs/superpowers/plans/`) executed task-by-task.
 
+### Stream 0 — Feature: Quick Links Categorization ✅
+
+**Goal:** Group quick links into categories across engine, API, web UI, and extension.
+
+- Link inventory expanded from 4 to 14 links across 5 categories: Portals (SCSM, Scopserve), Printing (SVCP, PaperCut), Identity (IDM, Grouper, Entra), SIS Omnia (Password Reset, Profile Overview), NAC (MAN, Campus A/B LAN + WIFI).
+- Two-level data model `{"categories": [{id, name, links}]}` with legacy flat-data auto-migration to a "General" category.
+- New admin endpoints: `POST /api/links/categories`, `DELETE /api/links/categories/<id>` (409 if non-empty); `POST /api/links` now requires `category_id`.
+- Extension popup renders grouped, scrollable Quick Links with matching offline fallback.
+- Spec: `docs/superpowers/specs/2026-08-03-quick-links-categorization-design.md`
+- Plan: `.opencode/plans/2026-08-03-quick-links-categorization.md`
+
 ### Stream 1 — Automated Tests ⬜
 
 **Goal:** Confidence that the app behaves correctly and regressions are caught.
@@ -106,3 +117,4 @@ Follow repo conventions established in previous work:
 | Date | Stream | Item | Status |
 |------|--------|------|--------|
 | 2026-08-03 | — | Baseline audit + this document | ✅ |
+| 2026-08-03 | Stream 0 | Quick Links categorization | ✅ |
