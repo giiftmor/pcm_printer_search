@@ -38,3 +38,5 @@ nwu-redirect-extension.crx
 
 # Runtime data
 quick_links.json
+# Worktrees
+.worktrees/
