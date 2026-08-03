@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Added
+- 2026-08-03: `build_svcp_url` helper (`modules/printer_search/svcp.py`) — sanitized SVCP URL construction with strict hostname validation, plus pytest coverage
 - 2026-08-03: Quick Links categorized into 5 groups (Portals, Printing, Identity, SIS Omnia, NAC) — grouped data model with legacy migration, category admin endpoints, sectioned web UI + extension popup
 - 2026-08-03: `major-improvements-implementation-status.md` — program tracking for tests, CI, and security hardening (baseline audit + findings + planned streams)
 - 2026-08-03: AGENTS.md overhauled — current module structure, API endpoint table, security model, and hardening-gap tracking
