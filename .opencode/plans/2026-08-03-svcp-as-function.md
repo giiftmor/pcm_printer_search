@@ -10,7 +10,7 @@
 
 ## Parked (out of scope)
 
-- Nextcloud share-token hardening (hardcoded `kaPSTNPpgsBzQk8` in `bin/build-extension.sh`), Docker build skipping upload (no curl in slim image), stale `browser_extension/README.md`, extension feature-branch release process. Track later; do not implement in this plan.
+- Nextcloud share-token hardening (hardcoded `NEXTCLOUD_SHARE_TOKEN` fallback in `bin/build-extension.sh`), Docker build skipping upload (no curl in slim image), stale `browser_extension/README.md`, extension feature-branch release process. Track later; do not implement in this plan.
 - `popup.js` `settingsBtn` calls `chrome.runtime.openOptionsPage()` but manifest has no `options_page` — pre-existing, unrelated to this work. Parked.
 
 ## Prerequisite
