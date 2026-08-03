@@ -24,7 +24,7 @@ config.py           # Config class (env-driven)
 core/auth.py        # bcrypt admin auth + admin_required session guard
 modules/            # Feature blueprints (each self-contained)
   printer_search/   # engine.py: Excel load/search + 60s auto-reload thread; routes.py: search + admin CRUD/login
-  quick_links/      # engine.py: JSON-file CRUD; routes.py: /api/links
+  quick_links/      # engine.py: grouped categories JSON CRUD; routes.py: /api/links (+ categories)
   user_lookup/      # urls.py: URL builders (IDM Consolidation/Password, Grouper); routes.py: /api/user-lookup/urls
 templates/          # routes.py: page routes; base.html + per-page Jinja templates
 static/             # compass.css, compass.js, dist/ (extension ZIPs)
@@ -57,9 +57,11 @@ major-improvements-implementation-status.md  # Tests/CI/hardening program tracki
 | GET | `/api/admin/get_url` | admin | Saved workbook URL |
 | POST | `/api/admin/update_url` | admin | Update workbook URL + reload data |
 | POST | `/api/admin/reload_data` | admin | Force Excel reload |
-| GET | `/api/links` | none | List quick links |
-| POST | `/api/links` | admin | Add quick link (JSON: name, url, icon) |
-| DELETE | `/api/links/<id>` | admin | Remove quick link |
+| GET | `/api/links` | none | List categories with nested links (`{"categories":[...]}`) |
+| POST | `/api/links` | admin | Add link (JSON: `category_id`, name, url, icon) |
+| DELETE | `/api/links/<id>` | admin | Remove link by id |
+| POST | `/api/links/categories` | admin | Add empty category (JSON: name) |
+| DELETE | `/api/links/categories/<id>` | admin | Remove empty category (409 if non-empty, 404 if unknown) |
 | GET | `/api/user-lookup/urls?user_id=X` | none | Return IDM/Grouper URLs for a user |
 
 Pages: `/` (dashboard), `/printer-search`, `/quick-links`, `/user-lookup`, `/download-extension`, `/download-extension/zip`.

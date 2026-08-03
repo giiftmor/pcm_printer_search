@@ -27,7 +27,7 @@ PCM Compass is a production-deployed internal IT helpdesk toolkit (Flask dashboa
 
 ## Program Structure
 
-Three workstreams. Each becomes its own plan (`.opencode/plans/` or `docs/superpowers/plans/`) executed task-by-task.
+Four streams (Stream 0 feature + three remaining). Each becomes its own plan (`.opencode/plans/` or `docs/superpowers/plans/`) executed task-by-task.
 
 ### Stream 0 — Feature: Quick Links Categorization ✅
 
@@ -40,25 +40,25 @@ Three workstreams. Each becomes its own plan (`.opencode/plans/` or `docs/superp
 - Spec: `docs/superpowers/specs/2026-08-03-quick-links-categorization-design.md`
 - Plan: `.opencode/plans/2026-08-03-quick-links-categorization.md`
 
-### Stream 1 — Automated Tests ⬜
+### Stream 1 — Automated Tests 🚧 (partial)
 
 **Goal:** Confidence that the app behaves correctly and regressions are caught.
 
 Planned work:
-- ⬜ Add pytest + pytest-cov to `requirements-dev.txt`
+- ✅ Add pytest + pytest-cov to `requirements-dev.txt`
 - ⬜ Unit tests for `modules/printer_search/engine.py`:
   - URL load/save round-trip (`get_saved_url` / `save_url`)
   - Excel parsing (mock `requests.get` / `pd.read_excel`)
   - `search_all_sheets` — match, no-match, empty-data, multi-sheet concat, `nan` cleanup
   - auto-reload thread behavior (short interval, mock loader)
 - ⬜ Unit tests for `modules/user_lookup/urls.py` — URL construction + quoting for the 3 builders
-- ⬜ Unit tests for `modules/quick_links/engine.py` — CRUD, defaults, persistence
+- ✅ Unit tests for `modules/quick_links/engine.py` — CRUD, defaults, persistence, legacy migration
 - ⬜ Unit tests for `core/auth.py` — hash/check round-trip, `admin_required` guard
 - ⬜ Flask integration tests via `app.test_client()`:
   - `POST /api/printer/search` (hit + miss + empty term)
   - `GET /api/printer/last-update`
   - `/api/user-lookup/urls` (valid + missing user_id)
-  - `/api/links` GET/POST/DELETE (incl. admin-required 403)
+  - ✅ `/api/links` GET/POST/DELETE + category endpoints (incl. admin-required 403)
   - `/api/admin/login` success/failure, `/api/admin/status`, protected endpoints
   - Page routes render (dashboard, printer-search, quick-links, user-lookup, download-extension)
 - ⬜ Templating safety test: assert user-supplied `q` is escaped (no XSS via `?q=` on printer-search)

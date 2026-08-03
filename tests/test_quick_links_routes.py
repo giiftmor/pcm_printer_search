@@ -1,11 +1,8 @@
-import os
 import pytest
 from flask import Flask
 from core.auth import init_admin_password
 from modules.quick_links import engine
 from modules.quick_links.routes import links_bp
-
-ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "test-password")
 
 
 @pytest.fixture
@@ -34,12 +31,12 @@ def test_get_links_returns_grouped(client):
     ]
 
 
-def test_post_link_requires_category(client):
+def test_post_link_requires_auth(client):
     resp = client.post("/api/links", json={"name": "X", "url": "https://x", "icon": "🔗"})
     assert resp.status_code == 403
 
 
-def test_post_link_requires_auth(client):
+def test_post_link_requires_category_id(client):
     login(client)
     resp = client.post("/api/links", json={"name": "X", "url": "https://x"})
     assert resp.status_code == 400
@@ -60,12 +57,17 @@ def test_post_link_success(client):
     assert resp.get_json()["name"] == "New"
 
 
-def test_delete_link_requires_auth(client):
+def test_delete_link_success(client):
     login(client)
     cat = client.get("/api/links").get_json()["categories"][0]
     link_id = cat["links"][0]["id"]
     resp = client.delete(f"/api/links/{link_id}")
     assert resp.status_code == 200
+
+
+def test_delete_link_requires_auth(client):
+    resp = client.delete("/api/links/some-id")
+    assert resp.status_code == 403
 
 
 def test_post_category(client):
@@ -75,11 +77,21 @@ def test_post_category(client):
     assert resp.get_json()["name"] == "Extra"
 
 
+def test_post_category_requires_auth(client):
+    resp = client.post("/api/links/categories", json={"name": "X"})
+    assert resp.status_code == 403
+
+
 def test_delete_empty_category(client):
     login(client)
     cat_id = client.post("/api/links/categories", json={"name": "Empty"}).get_json()["id"]
     resp = client.delete(f"/api/links/categories/{cat_id}")
     assert resp.status_code == 200
+
+
+def test_delete_category_requires_auth(client):
+    resp = client.delete("/api/links/categories/some-id")
+    assert resp.status_code == 403
 
 
 def test_delete_non_empty_category_409(client):

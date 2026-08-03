@@ -22,6 +22,7 @@
 - 2026-07-20: Flask page routes blueprint (templates/routes.py) for dashboard, printer search, user lookup, quick links, download extension
 
 ### Changed
+- 2026-08-03: Post-review polish — AGENTS.md API docs for grouped links; route test renames + auth coverage; migration rewrite assertion
 - 2026-08-03: Extension popup quick links — grouped by category (`DEFAULT_CATEGORIES`) with scrollable sections; consumes `GET /api/links` `{categories}` shape
 - 2026-07-22: Extension distribution — individual files uploaded to `pcm-compass/` subfolder, ZIP + docs in root of Nextcloud share
 - 2026-07-21: Extension v2.1.0 — tab reuse, offline quick links, SVCP links

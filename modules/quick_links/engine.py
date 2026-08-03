@@ -22,9 +22,11 @@ def _load():
                     {"id": str(uuid.uuid4()), "name": "General", "links": data["links"]}
                 ]
             }
+            # Persist so category UUIDs stay stable across loads (no in-memory cache).
             _save(data)
             return data
     data = {"categories": _default_categories()}
+    # Persist so category UUIDs stay stable across loads (no in-memory cache).
     _save(data)
     return data
 

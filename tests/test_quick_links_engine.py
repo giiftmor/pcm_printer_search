@@ -34,6 +34,8 @@ def test_legacy_flat_data_migrates_to_general(isolated):
     assert len(categories) == 1
     assert categories[0]["name"] == "General"
     assert categories[0]["links"][0]["name"] == "Old"
+    assert '"categories"' in isolated.read_text()
+    assert "General" in isolated.read_text()
 
 
 def test_add_and_remove_link_by_category(isolated):
