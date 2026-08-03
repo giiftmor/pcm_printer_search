@@ -4,21 +4,30 @@
 {% block content %}
 <div class="card">
     <h3>Quick Links</h3>
-    <div id="linksGrid" class="dashboard-grid"></div>
+    <div id="linksGrid"></div>
 </div>
 
 <div class="card" id="adminSection" style="display:none;">
     <h3>Add New Link</h3>
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <select id="linkCategory" style="padding:8px;border:1px solid #ddd;border-radius:4px;"></select>
         <input type="text" id="linkName" placeholder="Name" style="flex:1;min-width:120px;padding:8px;border:1px solid #ddd;border-radius:4px;">
         <input type="text" id="linkUrl" placeholder="URL" style="flex:2;min-width:200px;padding:8px;border:1px solid #ddd;border-radius:4px;">
         <input type="text" id="linkIcon" placeholder="Icon (emoji)" style="width:80px;padding:8px;border:1px solid #ddd;border-radius:4px;">
         <button class="btn btn-primary" onclick="addLink()">Add</button>
     </div>
+
+    <h3 style="margin-top:20px;">Categories</h3>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+        <input type="text" id="categoryName" placeholder="New category name" style="flex:1;min-width:160px;padding:8px;border:1px solid #ddd;border-radius:4px;">
+        <button class="btn btn-primary" onclick="addCategory()">Add Category</button>
+    </div>
+    <div id="categoryList"></div>
 </div>
 
 <script>
 let isAdmin = false;
+let categoriesData = [];
 
 document.addEventListener('DOMContentLoaded', () => {
     loadLinks();
@@ -29,41 +38,93 @@ function checkAdmin() {
     fetch('/api/admin/status').then(r => r.json()).then(d => {
         isAdmin = d.is_admin;
         document.getElementById('adminSection').style.display = isAdmin ? 'block' : 'none';
+        if (isAdmin) loadLinks();
     });
 }
 
 function loadLinks() {
-    fetch('/api/links').then(r => r.json()).then(links => {
-        const grid = document.getElementById('linksGrid');
-        grid.innerHTML = links.map(l => `
-            <a href="${l.url}" target="_blank" class="dashboard-card" style="text-align:center;">
-                <div class="card-icon">${l.icon}</div>
-                <h3>${l.name}</h3>
-                ${isAdmin ? `<button onclick="event.preventDefault();deleteLink('${l.id}')" style="margin-top:8px;padding:4px 8px;font-size:11px;background:#dc3545;color:white;border:none;border-radius:4px;cursor:pointer;">Remove</button>` : ''}
-            </a>
-        `).join('');
+    fetch('/api/links').then(r => r.json()).then(data => {
+        categoriesData = data.categories || [];
+        renderGrid();
+        if (isAdmin) { renderCategorySelect(); renderCategoryList(); }
     });
 }
 
+function renderGrid() {
+    const grid = document.getElementById('linksGrid');
+    grid.innerHTML = categoriesData.map(cat => `
+        <div class="links-category" style="margin-bottom:24px;">
+            <h3 style="margin-bottom:12px;">${cat.name}</h3>
+            <div class="dashboard-grid">
+                ${cat.links.map(l => `
+                    <a href="${l.url}" target="_blank" class="dashboard-card" style="text-align:center;">
+                        <div class="card-icon">${l.icon}</div>
+                        <h3>${l.name}</h3>
+                        ${isAdmin ? `<button onclick="event.preventDefault();deleteLink('${l.id}')" style="margin-top:8px;padding:4px 8px;font-size:11px;background:#dc3545;color:white;border:none;border-radius:4px;cursor:pointer;">Remove</button>` : ''}
+                    </a>
+                `).join('')}
+            </div>
+        </div>
+    `).join('');
+}
+
+function renderCategorySelect() {
+    const sel = document.getElementById('linkCategory');
+    sel.innerHTML = categoriesData.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+}
+
+function renderCategoryList() {
+    const list = document.getElementById('categoryList');
+    list.innerHTML = categoriesData.map(c => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px;border:1px solid #eee;border-radius:4px;margin-bottom:6px;">
+            <span>${c.name} (${c.links.length})</span>
+            <button onclick="deleteCategory('${c.id}')" style="padding:4px 8px;font-size:11px;background:#dc3545;color:white;border:none;border-radius:4px;cursor:pointer;">Delete</button>
+        </div>
+    `).join('');
+}
+
 function addLink() {
+    const category_id = document.getElementById('linkCategory').value;
     const name = document.getElementById('linkName').value.trim();
     const url = document.getElementById('linkUrl').value.trim();
     const icon = document.getElementById('linkIcon').value.trim() || '🔗';
-    if (!name || !url) return;
+    if (!category_id || !name || !url) return;
     fetch('/api/links', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, url, icon })
-    }).then(() => {
+        body: JSON.stringify({ category_id, name, url, icon })
+    }).then(resp => {
+        if (!resp.ok) return resp.json().then(d => { throw new Error(d.error); });
         document.getElementById('linkName').value = '';
         document.getElementById('linkUrl').value = '';
         document.getElementById('linkIcon').value = '';
         loadLinks();
-    });
+    }).catch(err => alert(err.message));
+}
+
+function addCategory() {
+    const name = document.getElementById('categoryName').value.trim();
+    if (!name) return;
+    fetch('/api/links/categories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name })
+    }).then(resp => {
+        if (!resp.ok) return resp.json().then(d => { throw new Error(d.error); });
+        document.getElementById('categoryName').value = '';
+        loadLinks();
+    }).catch(err => alert(err.message));
 }
 
 function deleteLink(id) {
     fetch(`/api/links/${id}`, { method: 'DELETE' }).then(() => loadLinks());
+}
+
+function deleteCategory(id) {
+    fetch(`/api/links/categories/${id}`, { method: 'DELETE' }).then(resp => {
+        if (!resp.ok) return resp.json().then(d => { throw new Error(d.error); });
+        loadLinks();
+    }).catch(err => alert(err.message));
 }
 </script>
 {% endblock %}
