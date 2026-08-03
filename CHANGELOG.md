@@ -4,6 +4,7 @@
 
 ### Added
 - 2026-08-03: `enrich_row_with_svcp` helper (`modules/printer_search/svcp.py`) — attaches optional `svcp_url` to printer search result rows via `search_all_sheets`, plus pytest coverage
+- 2026-08-03: `GET /api/status` endpoint — returns app + extension versions; app `VERSION` file (repo root) as source of truth, exposed via `Config.APP_VERSION` and footer
 - 2026-08-03: `build_svcp_url` helper (`modules/printer_search/svcp.py`) — sanitized SVCP URL construction with strict hostname validation, plus pytest coverage
 - 2026-08-03: Quick Links categorized into 5 groups (Portals, Printing, Identity, SIS Omnia, NAC) — grouped data model with legacy migration, category admin endpoints, sectioned web UI + extension popup
 - 2026-08-03: `major-improvements-implementation-status.md` — program tracking for tests, CI, and security hardening (baseline audit + findings + planned streams)
@@ -25,6 +26,7 @@
 
 ### Changed
 - 2026-08-03: Extension v2.2.0 — Open SVCP button in popup opens `https://{hostname}.svcp.nwu.ac.za` via `buildSvcpUrl` (mirrors `modules/printer_search/svcp.py`), reusing the SVCP tab
+- 2026-08-03: Download-extension fallback version now derives from `browser_extension/manifest.json` instead of a hardcoded `2.1.0`; `package.json` synced to app `VERSION` (0.2.0)
 - 2026-08-03: Post-review polish — AGENTS.md API docs for grouped links; route test renames + auth coverage; migration rewrite assertion
 - 2026-08-03: Extension popup quick links — grouped by category (`DEFAULT_CATEGORIES`) with scrollable sections; consumes `GET /api/links` `{categories}` shape
 - 2026-07-22: Extension distribution — individual files uploaded to `pcm-compass/` subfolder, ZIP + docs in root of Nextcloud share

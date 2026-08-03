@@ -72,6 +72,11 @@ Pages: `/` (dashboard), `/printer-search`, `/quick-links`, `/user-lookup`, `/dow
 - Admin auth: single password (bcrypt-hashed at startup from `ADMIN_PASSWORD`), Flask session cookie.
 - **Known gaps under hardening** (tracked in `major-improvements-implementation-status.md`): a plaintext NWU password exists in git history (old docs), a hardcoded Nextcloud share token in `bin/build-extension.sh`, default admin password fallback, no CSRF protection, no rate limiting on login, dependency ranges unpinned. Do NOT introduce new hardcoded secrets.
 
+## Versioning
+
+- App: `VERSION` file (repo root) is the source of truth, exposed as `Config.APP_VERSION`, footer, and `/api/status`. `package.json` mirrors it. Semver; bump on release.
+- Extension: `browser_extension/manifest.json` is the source of truth. `bin/build-extension.sh` reads it for the zip name. Bump on every shippable extension change.
+
 ## Development Workflow
 
 - **Test/lint first:** No test suite or CI exists yet — this is the active improvement program. Prefer writing/updating tests in the same change as code (see status doc). Verify with `python app.py` boot + `flask test_client` smoke checks until `bin/test.sh` exists.
