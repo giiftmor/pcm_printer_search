@@ -104,26 +104,51 @@ document.getElementById('grouperBtn').addEventListener('click', () => {
     findOrCreateTab(`*://grp.nwu.ac.za/grouper/populateSubjectSummary.do*${encodeURIComponent(v)}*`, url);
 });
 
-const DEFAULT_LINKS = [
-    { name: 'SVCP Portal', url: 'https://svcp.nwu.ac.za', icon: '🖨️' },
-    { name: 'PaperCut Admin', url: 'https://papercut.nwu.ac.za', icon: '📊' },
-    { name: 'IDM', url: 'https://idm.nwu.ac.za', icon: '👤' },
-    { name: 'Grouper', url: 'https://grp.nwu.ac.za/grouper/', icon: '👥' },
+const DEFAULT_CATEGORIES = [
+    { name: 'Portals', links: [
+        { name: 'SCSM Support Portal', url: 'https://support.nwu.ac.za/View/HomePage#/', icon: '🎫' },
+        { name: 'Scopserve', url: 'http://143.160.36.111:5555/reports/telephony.php', icon: '📞' },
+    ] },
+    { name: 'Printing', links: [
+        { name: 'SVCP Portal', url: 'https://svcp.nwu.ac.za', icon: '🖨️' },
+        { name: 'PaperCut Admin Portal', url: 'http://v-pcut-win1.nwu.ac.za:9191/app', icon: '🖨️' },
+    ] },
+    { name: 'Identity', links: [
+        { name: 'IDM', url: 'https://idm.nwu.ac.za', icon: '👤' },
+        { name: 'Grouper', url: 'https://grp.nwu.ac.za/grouper/', icon: '👥' },
+        { name: 'Microsoft Entra', url: 'https://entra.microsoft.com/#home', icon: '🪪' },
+    ] },
+    { name: 'SIS (Omnia)', links: [
+        { name: 'Omnia Pwd Reset', url: 'https://omnia.nwu.ac.za/omnia/send_sis_password_info', icon: '🔑' },
+        { name: 'Omnia Profile', url: 'https://omnia.nwu.ac.za/omnia/get_sis_provisioning_info_page', icon: '📋' },
+    ] },
+    { name: 'NAC', links: [
+        { name: 'MAN NAC', url: 'https://196.252.138.240:8443/gui/hosts/view', icon: '🌐' },
+        { name: 'NAC 1 B LAN', url: 'https://196.252.138.242:8443/gui/hosts/adapters', icon: '🏛️' },
+        { name: 'NAC 1 B WIFI', url: 'https://196.252.138.241:8443/gui/hosts/view', icon: '📶' },
+        { name: 'NAC 2 A LAN', url: 'https://196.252.138.243:8443/gui/hosts/adapters', icon: '🏛️' },
+        { name: 'NAC 2 A WIFI', url: 'https://196.252.138.244:8443/gui/hosts/view', icon: '📶' },
+    ] },
 ];
 
-function renderLinks(links) {
+function renderLinks(categories) {
     const grid = document.getElementById('quickLinks');
-    grid.innerHTML = links.map(l => `<a href="${l.url}" target="_blank">${l.icon} ${l.name}</a>`).join('');
+    grid.innerHTML = categories.map(cat => `
+        <div class="link-group">
+            <div class="link-group-title">${cat.name}</div>
+            <div class="links-grid">${cat.links.map(l => `<a href="${l.url}" target="_blank">${l.icon} ${l.name}</a>`).join('')}</div>
+        </div>
+    `).join('');
 }
 
 async function loadQuickLinks() {
     try {
         const appUrl = await getAppUrl();
         const res = await fetch(`${appUrl}/api/links`);
-        const links = await res.json();
-        renderLinks(links);
+        const data = await res.json();
+        renderLinks(data.categories || DEFAULT_CATEGORIES);
     } catch {
-        renderLinks(DEFAULT_LINKS);
+        renderLinks(DEFAULT_CATEGORIES);
     }
 }
 

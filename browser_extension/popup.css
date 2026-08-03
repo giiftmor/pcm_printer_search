@@ -54,3 +54,7 @@ hr { border: none; border-top: 1px solid #eee; margin: 8px 0; }
     font-size: 12px;
 }
 .links-grid a:hover { background: #e0e0e0; }
+
+.link-group { margin-bottom: 10px; }
+.link-group-title { font-size: 12px; font-weight: 600; color: #006633; margin-bottom: 6px; }
+#quickLinks { max-height: 300px; overflow-y: auto; }
