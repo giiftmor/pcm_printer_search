@@ -25,6 +25,7 @@
 - 2026-07-20: Flask page routes blueprint (templates/routes.py) for dashboard, printer search, user lookup, quick links, download extension
 
 ### Changed
+- 2026-08-03: Extension v2.2.1 — permanent app URL updated to `http://196.252.15.214:5000` (DEFAULT_APP_URL + host_permissions; old IP removed)
 - 2026-08-03: Printer search web results render the API's escaped `svcp_url` link instead of concatenating raw hostname into an `href` (bad hostnames show plain text)
 - 2026-08-03: Extension v2.2.0 — Open SVCP button in popup opens `https://{hostname}.svcp.nwu.ac.za` via `buildSvcpUrl` (mirrors `modules/printer_search/svcp.py`), reusing the SVCP tab
 - 2026-08-03: Download-extension fallback version now derives from `browser_extension/manifest.json` instead of a hardcoded `2.1.0`; `package.json` synced to app `VERSION` (0.2.0)

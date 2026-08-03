@@ -18,7 +18,7 @@ def test_status_returns_versions(client):
     data = resp.get_json()
     assert data["name"] == "PCM Compass"
     assert data["app_version"] == Config.APP_VERSION
-    assert data["extension_version"] == "2.2.0"
+    assert data["extension_version"] == "2.2.1"
 
 
 def test_status_app_version_matches_version_file():

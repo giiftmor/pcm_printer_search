@@ -1,4 +1,4 @@
-const DEFAULT_APP_URL = 'http://196.252.43.75:5000';
+const DEFAULT_APP_URL = 'http://196.252.15.214:5000';
 const STORAGE_KEYS = { printer: 'printer_history', userId: 'userId_history' };
 const MAX_HISTORY = 10;
 
