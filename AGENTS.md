@@ -25,7 +25,7 @@ core/auth.py        # bcrypt admin auth + admin_required session guard
 modules/            # Feature blueprints (each self-contained)
   printer_search/   # engine.py: Excel load/search + 60s auto-reload thread; svcp.py: build_svcp_url + svcp_url row enrichment; routes.py: search + admin CRUD/login
   quick_links/      # engine.py: grouped categories JSON CRUD; routes.py: /api/links (+ categories)
-  user_lookup/      # urls.py: URL builders (IDM Consolidation/Password, Grouper); routes.py: /api/user-lookup/urls
+  user_lookup/      # urls.py: URL builders (IDM Consolidation/Password, Grouper, Grouper group URLs + presets); routes.py: /api/user-lookup/urls, /api/user-lookup/grouper-presets, /api/user-lookup/group-url
 templates/          # routes.py: page routes; base.html + per-page Jinja templates
 static/             # compass.css, compass.js, dist/ (extension ZIPs)
 browser_extension/  # Chrome extension (Manifest V3) — popup + url_helpers.js (URL builders, tab-reuse matcher) + build docs
@@ -64,6 +64,8 @@ major-improvements-implementation-status.md  # Tests/CI/hardening program tracki
 | POST | `/api/links/categories` | admin | Add empty category (JSON: name) |
 | DELETE | `/api/links/categories/<id>` | admin | Remove empty category (409 if non-empty, 404 if unknown) |
 | GET | `/api/user-lookup/urls?user_id=X` | none | Return IDM/Grouper URLs for a user |
+| GET | `/api/user-lookup/grouper-presets` | none | Preset Grouper groups (`{"presets":[{"id","label","name","url"}]}`) |
+| GET | `/api/user-lookup/group-url?name=X` | none | Build Grouper group URL for a stem/name |
 
 Pages: `/` (dashboard), `/printer-search`, `/quick-links`, `/user-lookup`, `/download-extension`, `/download-extension/zip`.
 

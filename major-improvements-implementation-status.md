@@ -52,14 +52,16 @@ Planned work:
   - `search_all_sheets` — match, no-match, empty-data, multi-sheet concat, `nan` cleanup
   - auto-reload thread behavior (short interval, mock loader)
 - ⬜ Unit tests for `modules/user_lookup/urls.py` — URL construction + quoting for the 3 builders
+- ✅ Unit tests for `modules/user_lookup/urls.py` grouper group builder — `build_grouper_group_url` (7 presets, quoting, trimming, invalid/empty input) + `GET /api/user-lookup/grouper-presets` and `GET /api/user-lookup/group-url` endpoint tests (`tests/test_grouper_groups.py`, via Docker `pcm-test`)
 - ✅ Unit tests for `modules/quick_links/engine.py` — CRUD, defaults, persistence, legacy migration
 - ✅ Unit tests for `modules/printer_search/svcp.py` — `build_svcp_url` hostname sanitization (12 param cases) + `search_all_sheets` `svcp_url` enrichment + non-mutation of input rows (`test_printer_svcp.py`, `test_printer_search_svcp_enrichment.py`)
-- ✅ Unit tests for `browser_extension/url_helpers.js` — IDM/Grouper URL builders, `matchesPrefix` tab-reuse matcher (query-string invisible to Chrome match patterns), `buildSvcpUrl` mirroring the Python rules (`tests/url_helpers.test.js`, run via host `node --test`)
+- ✅ Unit tests for `browser_extension/url_helpers.js` — IDM/Grouper URL builders, `matchesPrefix` tab-reuse matcher (query-string invisible to Chrome match patterns), `buildSvcpUrl` mirroring the Python rules, `buildGrouperGroupURL` + `GROUPER_GROUP_PRESETS` mirroring the Python builder (`tests/url_helpers.test.js`, run via host `node --test`)
 - ⬜ Unit tests for `core/auth.py` — hash/check round-trip, `admin_required` guard
 - ⬜ Flask integration tests via `app.test_client()`:
   - `POST /api/printer/search` (hit + miss + empty term)
   - `GET /api/printer/last-update`
-  - `/api/user-lookup/urls` (valid + missing user_id)
+  - ✅ `/api/user-lookup/urls` (valid + missing user_id)
+  - ✅ `/api/user-lookup/grouper-presets` + `/api/user-lookup/group-url` (preset shape, URL build, missing name → 400)
   - ✅ `/api/links` GET/POST/DELETE + category endpoints (incl. admin-required 403)
   - ✅ `GET /api/status` — returns app + extension versions; `app_version` matches the `VERSION` file
   - `/api/admin/login` success/failure, `/api/admin/status`, protected endpoints
@@ -125,3 +127,4 @@ Follow repo conventions established in previous work:
 | 2026-08-03 | Stream 0 | Quick Links categorization | ✅ |
 | 2026-08-03 | Stream 0 (follow-up) | SVCP as a shared function + printer web links, extension tab-reuse fix, independent app/extension versioning | ✅ |
 | 2026-08-03 | Stream 1 | SVCP URL-builder + enrichment tests, `/api/status` test, `url_helpers.js` node tests | ✅ |
+| 2026-08-04 | Stream 1 | Grouper group lookup — Python + JS group URL builders + 7 presets, 2 API endpoints, web card, extension popup section (pytest `tests/test_grouper_groups.py` + node `buildGrouperGroupURL`/presets cases) | ✅ |
