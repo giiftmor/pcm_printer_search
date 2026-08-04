@@ -85,7 +85,7 @@
             sourceId: 'g:gsa'
         });
         if (description) params.set('description', description);
-        return `${GROUPER_BASE}?${params.toString().replace(/\+/g, '%20')}`;
+        return `${GROUPER_BASE}?${params.toString().replace(/\+/g, '%20').replace(/\*/g, '%2A').replace(/%7E/g, '~')}`;
     }
 
     return {

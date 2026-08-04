@@ -61,6 +61,14 @@ test('buildGrouperGroupURL rejects invalid', () => {
     assert.strictEqual(h.buildGrouperGroupURL(null), null);
 });
 
+test('buildGrouperGroupURL matches Python quote for ~ and *', () => {
+    const url = h.buildGrouperGroupURL('a~b*c');
+    assert.ok(url.includes('name=a~b%2Ac'));
+    assert.ok(!url.includes('%7E'));
+    const url2 = h.buildGrouperGroupURL('a~b*c d');
+    assert.ok(url2.includes('name=a~b%2Ac%20d'));
+});
+
 test('GROUPER_GROUP_PRESETS shape', () => {
     assert.strictEqual(h.GROUPER_GROUP_PRESETS.length, 7);
     const names = h.GROUPER_GROUP_PRESETS.map(p => p.name);
