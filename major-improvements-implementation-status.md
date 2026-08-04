@@ -60,7 +60,7 @@ Planned work:
 - ⬜ Flask integration tests via `app.test_client()`:
   - `POST /api/printer/search` (hit + miss + empty term)
   - `GET /api/printer/last-update`
-  - ✅ `/api/user-lookup/urls` (valid + missing user_id)
+  - `/api/user-lookup/urls` (valid + missing user_id)
   - ✅ `/api/user-lookup/grouper-presets` + `/api/user-lookup/group-url` (preset shape, URL build, missing name → 400)
   - ✅ `/api/links` GET/POST/DELETE + category endpoints (incl. admin-required 403)
   - ✅ `GET /api/status` — returns app + extension versions; `app_version` matches the `VERSION` file
