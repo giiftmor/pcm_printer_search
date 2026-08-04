@@ -36,13 +36,20 @@ def test_build_grouper_group_url_trims():
     assert "name=nwu%3Agroups%3AAzure%3AAzure_Include_Staff" in url
 
 
+EXPECTED_PRESETS = [
+    {"id": "papercut-staff", "label": "Papercut Staff Include", "name": "Papercut_pcm_staff_include"},
+    {"id": "azure-staff", "label": "Azure Staff", "name": "nwu:groups:Azure:Azure_Include_Staff"},
+    {"id": "ms-full-staff", "label": "MS Full Staff License", "name": "nwu:groups:mslicenses:msfed_include_full_staff_license"},
+    {"id": "ms-activate", "label": "MS Activate", "name": "nwu:groups:mslicenses:ms_activate"},
+    {"id": "azure-students", "label": "Azure Students", "name": "nwu:groups:Azure:Azure_Include_Students"},
+    {"id": "acrobat", "label": "Acrobat", "name": "nwu:groups:Adobe:Acrobat_fedID_users"},
+    {"id": "acrobat-include", "label": "Acrobat Include", "name": "nwu:groups:Adobe:Acrobat_fedID_users_include"},
+]
+
+
 def test_presets_have_expected_shape():
-    assert len(GROUPER_GROUP_PRESETS) == 7
-    names = {p["name"] for p in GROUPER_GROUP_PRESETS}
-    assert "nwu:groups:Azure:Azure_Include_Staff" in names
-    assert "Papercut_pcm_staff_include" in names
+    assert GROUPER_GROUP_PRESETS == EXPECTED_PRESETS
     for p in GROUPER_GROUP_PRESETS:
-        assert {"id", "label", "name"} <= set(p)
         assert build_grouper_group_url(p["name"]) is not None
 
 

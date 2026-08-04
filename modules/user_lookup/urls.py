@@ -39,7 +39,7 @@ GROUPER_GROUP_PRESETS = [
 ]
 
 
-def build_grouper_group_url(group_name: str, description: str | None = None) -> str | None:
+def build_grouper_group_url(group_name: str | None, description: str | None = None) -> str | None:
     name = (group_name or "").strip()
     if not name:
         return None
