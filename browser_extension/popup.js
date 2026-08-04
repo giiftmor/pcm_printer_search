@@ -103,6 +103,33 @@ document.getElementById('grouperBtn').addEventListener('click', () => {
     findOrCreateTab(url, { hostPattern: '*://grp.nwu.ac.za/*', pathPrefix: '/grouper/' });
 });
 
+function openGrouperGroup(name) {
+    const url = PCM_URL_HELPERS.buildGrouperGroupURL(name);
+    if (!url) return;
+    findOrCreateTab(url, { hostPattern: '*://grp.nwu.ac.za/*', pathPrefix: '/grouper/' });
+}
+
+function renderGrouperGroupChips() {
+    const grid = document.getElementById('grouperGroupChips');
+    const presets = PCM_URL_HELPERS.GROUPER_GROUP_PRESETS || [];
+    grid.innerHTML = presets.map((p, i) =>
+        `<button class="chip" data-idx="${i}">${p.label}</button>`
+    ).join('');
+    grid.querySelectorAll('.chip').forEach(btn => {
+        btn.addEventListener('click', () => openGrouperGroup(presets[btn.dataset.idx].name));
+    });
+}
+
+document.getElementById('grouperGroupOpenBtn').addEventListener('click', () => {
+    const v = document.getElementById('groupIdInput').value.trim();
+    if (!v) return;
+    openGrouperGroup(v);
+});
+
+document.getElementById('groupIdInput').addEventListener('keypress', e => {
+    if (e.key === 'Enter') document.getElementById('grouperGroupOpenBtn').click();
+});
+
 const DEFAULT_CATEGORIES = [
     { name: 'Portals', links: [
         { name: 'SCSM Support Portal', url: 'https://support.nwu.ac.za/View/HomePage#/', icon: '🎫' },
@@ -166,4 +193,5 @@ document.addEventListener('DOMContentLoaded', () => {
     populateDatalist('printer-history', STORAGE_KEYS.printer);
     populateDatalist('user-history', STORAGE_KEYS.userId);
     loadQuickLinks();
+    renderGrouperGroupChips();
 });
