@@ -2,7 +2,18 @@
 
 ## [Unreleased]
 
+### Fixed
+- 2026-08-04: Extension popup crash (`PCM_URL_HELPERS is not defined`) — `bin/build-extension.sh` `EXT_FILES` now includes `url_helpers.js`, so the Nextcloud `pcm-compass/` per-file folder ships it; regression guarded by `tests/build_extension.test.js`
+
+### Changed
+- 2026-08-04: Grouper group presets now store full subject-summary URLs (with UUIDs) instead of name stems — preset shape is `{id, label, url}`; removed free-text group lookup, `build_grouper_group_url`/`buildGrouperGroupURL` builders, and `GET /api/user-lookup/group-url` endpoint (extension v2.3.2)
+- 2026-08-04: Extension "Open App" button moved from the printer row to the popup footer; dead ⚙ settings gear now toggles an inline App URL panel (save/reset via `chrome.storage.local`)
+
 ### Added
+- 2026-08-04: Extension reload-nudge — `bin/build-extension.sh` writes `version.json` (from manifest) into the package; popup compares it to the manifest and shows a reload banner on mismatch (extension v2.3.2)
+- 2026-08-04: User-facing extension changelog — in-extension `changelog.html` with a popup footer link ("What's new") and live version read from the manifest (extension v2.3.1)
+- 2026-08-04: `tests/build_extension.test.js` now guards that every popup script + runtime file (css, icons, changelog) is listed in `EXT_FILES` and exists in `browser_extension/`
+- 2026-08-04: AGENTS.md "Extension CI/CD (Nextcloud)" section — documents the Nextcloud shared-folder deploy pipeline, client sync ("Always keep on this device"), load-unpacked path, and update semantics (next popup open vs. manifest reload)
 - 2026-08-04: Grouper group lookup — 7 preset groups (Papercut staff, Azure staff/students, MS licenses, Acrobat) + free-text group open; Python+JS builders, 2 new API endpoints, web card, extension popup section
 - 2026-08-03: `enrich_row_with_svcp` helper (`modules/printer_search/svcp.py`) — attaches optional `svcp_url` to printer search result rows via `search_all_sheets`, plus pytest coverage
 - 2026-08-03: `GET /api/status` endpoint — returns app + extension versions; app `VERSION` file (repo root) as source of truth, exposed via `Config.APP_VERSION` and footer
@@ -26,6 +37,7 @@
 - 2026-07-20: Flask page routes blueprint (templates/routes.py) for dashboard, printer search, user lookup, quick links, download extension
 
 ### Changed
+- 2026-08-04: Extension v2.3.1 — popup footer with version + "What's new" changelog link; INSTALL.md + download page now document the Nextcloud synced-folder install as primary (ZIP as fallback)
 - 2026-08-04: Extension v2.3.0 — Grouper Groups section (preset chips + manual Open); person button renamed to "Grouper User" in web UI
 - 2026-08-03: Extension v2.2.1 — permanent app URL updated to `http://196.252.15.214:5000` (DEFAULT_APP_URL + host_permissions; old IP removed)
 - 2026-08-03: Printer search web results render the API's escaped `svcp_url` link instead of concatenating raw hostname into an `href` (bad hostnames show plain text)

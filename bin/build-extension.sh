@@ -11,7 +11,7 @@ NEXTCLOUD_WEBDAV="https://nextcloud.nwu.ac.za/public.php/webdav"
 NEXTCLOUD_LINK="https://nextcloud.nwu.ac.za/index.php/s/${NEXTCLOUD_SHARE_TOKEN}"
 
 # Extension files to upload to pcm-compass/ subfolder
-EXT_FILES="manifest.json popup.html popup.js popup.css icon16.png icon48.png icon128.png"
+EXT_FILES="manifest.json version.json popup.html popup.js url_helpers.js popup.css icon16.png icon48.png icon128.png changelog.html"
 
 # Docs to upload to root
 DOC_FILES="INSTALL.md README.md"
@@ -23,6 +23,9 @@ ZIP_NAME="pcm-compass-v${VERSION}.zip"
 mkdir -p "$DIST_DIR"
 
 echo "Building PCM Compass v${VERSION}..."
+
+# Write version.json consumed by the popup to detect manifest changes that need a Reload
+printf '{"version":"%s"}\n' "$VERSION" > "$EXT_DIR/version.json"
 
 # Clean previous build
 rm -f "$DIST_DIR/$ZIP_NAME"

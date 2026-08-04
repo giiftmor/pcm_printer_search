@@ -13,17 +13,21 @@
         <span style="margin-left:12px;color:#999;font-size:13px;">Updated: {{ date }}</span>
     </div>
 
+    <div class="error-box" style="margin-top:20px;">
+        <strong>For desk/tech staff:</strong> the extension is deployed to a <strong>Nextcloud shared folder</strong> (<code>SFG (Tested and Deployed)\Nexus\pcm-compass</code>). If your Nextcloud desktop client syncs that folder (with "Always keep on this device"), skip the ZIP below and <strong>Load unpacked</strong> straight from the synced folder — updates arrive automatically on the next popup open. The ZIP below is the manual fallback.
+    </div>
+
     <h3 style="margin-top:24px;">Installation Instructions</h3>
 
     <div style="margin-top:12px;">
         <h4>Chrome / Edge / Brave</h4>
         <ol style="margin:8px 0 16px 20px;font-size:14px;line-height:1.8;">
-            <li>Download the ZIP file above</li>
-            <li>Extract the ZIP to a folder you'll keep (e.g. <code>PCM-Compass</code>)</li>
+            <li>Pick your install source: the synced Nextcloud <code>pcm-compass</code> folder, or the ZIP below</li>
+            <li>If using the ZIP, extract it to a folder you'll keep (e.g. <code>PCM-Compass</code>)</li>
             <li>Open your browser and go to <code>chrome://extensions</code> (or <code>edge://extensions</code>)</li>
             <li>Enable <strong>Developer mode</strong> (toggle in top-right)</li>
             <li>Click <strong>Load unpacked</strong></li>
-            <li>Select the extracted <code>PCM-Compass</code> folder</li>
+            <li>Select the synced <code>pcm-compass</code> folder or the extracted ZIP folder</li>
             <li>The extension icon appears in your toolbar — pin it for easy access</li>
         </ol>
 

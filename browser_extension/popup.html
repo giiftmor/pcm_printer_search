@@ -6,9 +6,22 @@
 </head>
 <body>
     <div class="popup">
+        <div id="reloadBanner" class="reload-banner hidden" role="status">
+            Extension updated — reload it: <code>chrome://extensions</code> &rarr; Reload (&#8635;)
+        </div>
+
         <div class="header">
             <h1>PCM Compass</h1>
             <button id="settingsBtn" class="icon-btn" title="Settings">&#9881;</button>
+        </div>
+
+        <div id="settingsPanel" class="settings-panel hidden">
+            <label for="appUrlInput">App URL</label>
+            <input type="text" id="appUrlInput" placeholder="http://196.252.15.214:5000">
+            <div class="button-row">
+                <button id="appUrlSaveBtn" class="btn primary">Save</button>
+                <button id="appUrlResetBtn" class="btn secondary">Reset</button>
+            </div>
         </div>
 
         <section class="tool-section">
@@ -19,7 +32,6 @@
             </div>
             <div class="button-row">
                 <button id="printerSearchBtn" class="btn primary">Search</button>
-                <button id="printerOpenBtn" class="btn secondary">Open App</button>
                 <button id="printerSvcpBtn" class="btn secondary">Open SVCP</button>
             </div>
         </section>
@@ -42,12 +54,6 @@
         <section class="tool-section">
             <h2>Grouper Groups</h2>
             <div id="grouperGroupChips" class="chip-grid"></div>
-            <div class="input-row">
-                <input type="text" id="groupIdInput" placeholder="Group path or name">
-            </div>
-            <div class="button-row">
-                <button id="grouperGroupOpenBtn" class="btn primary">Open</button>
-            </div>
         </section>
 
         <hr>
@@ -56,6 +62,12 @@
             <h2>Quick Links</h2>
             <div id="quickLinks" class="links-grid"></div>
         </section>
+
+        <div class="footer">
+            <a href="#" id="openAppLink">Open app</a>
+            <span>PCM Compass <span id="extVersion"></span></span>
+            <a href="#" id="whatsNewLink" title="What's new">What's new</a>
+        </div>
     </div>
     <script src="url_helpers.js"></script>
     <script src="popup.js"></script>

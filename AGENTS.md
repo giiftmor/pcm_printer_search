@@ -13,8 +13,23 @@ python app.py           # Local dev without Docker
 ./bin/switch.sh dev|prod|rebuild|status|logs|stop   # Mode switcher (writes .mode)
 ```
 
-- Extension build/upload: `./bin/build-extension.sh` → ZIPs `browser_extension/` to `static/dist/pcm-compass-v{version}.zip`, optionally uploads to Nextcloud WebDAV.
+- Extension build/upload: `./bin/build-extension.sh` → ZIPs `browser_extension/` to `static/dist/pcm-compass-v{version}.zip` and deploys individual files to the Nextcloud `pcm-compass/` folder (the prod distribution point). See "Extension CI/CD (Nextcloud)" below.
 - Env config via `.env` (see `.env.example`): `FLASK_SECRET_KEY`, `ADMIN_PASSWORD`, `WORKBOOK_URL`, `DATA_REFRESH_INTERVAL`, `QUICK_LINKS_FILE`.
+
+## Extension CI/CD (Nextcloud)
+
+The extension is distributed through a **Nextcloud shared folder** — a fully enclosed, rudimentary CI/CD pipeline. Understand this before touching `browser_extension/` or `bin/build-extension.sh`:
+
+1. **Develop** on this repo (`browser_extension/`).
+2. **Deploy** with `./bin/build-extension.sh` — it uploads the individual extension files to the Nextcloud `pcm-compass/` subfolder (the prod deployment root) plus a versioned ZIP and docs at the share root.
+3. **Clients** use the Nextcloud desktop client to sync that folder with **"Always keep on this device"** enabled, e.g. `%USERPROFILE%\NWUNextcloud\SFG (Tested and Deployed)\Nexus\pcm-compass`.
+4. **Load** the extension in a Chromium browser via **Load unpacked**, pointing at that synced local folder.
+5. **Update flow:** when the script pushes new files, Nextcloud syncs them to the client folder. JS/HTML/CSS changes take effect on the **next popup open** (no manual reload needed). **`manifest.json` changes** (version, permissions, host_permissions, icons) require a one-time **Reload (↻)** on `chrome://extensions` (or browser restart) — Chrome only re-reads the manifest at load/reload time. The browser's "Update" button is a no-op here (no Web Store / `update_url`).
+
+**Hard rules for this workflow:**
+- **`EXT_FILES` in `bin/build-extension.sh` must list EVERY file the popup needs at runtime** (manifest, `version.json`, `popup.html`, `popup.js`, `url_helpers.js`, `popup.css`, icons, `changelog.html`). A missing entry silently breaks client installs with resource-load errors (e.g. `ERR_FILE_NOT_FOUND` / `PCM_URL_HELPERS is not defined`). Guarded by `tests/build_extension.test.js`.
+- **Version discipline:** bump `manifest.json` on every shippable change; keep the in-extension `changelog.html` in sync. `manifest.json` is the single source of truth for the extension version. `bin/build-extension.sh` writes `version.json` (from the manifest) into the package — the popup reads it and shows a "reload needed" banner if it differs from the loaded manifest version.
+- Do **not** add secrets to the extension or its deploy script.
 
 ## Project Structure (current)
 
@@ -25,10 +40,10 @@ core/auth.py        # bcrypt admin auth + admin_required session guard
 modules/            # Feature blueprints (each self-contained)
   printer_search/   # engine.py: Excel load/search + 60s auto-reload thread; svcp.py: build_svcp_url + svcp_url row enrichment; routes.py: search + admin CRUD/login
   quick_links/      # engine.py: grouped categories JSON CRUD; routes.py: /api/links (+ categories)
-  user_lookup/      # urls.py: URL builders (IDM Consolidation/Password, Grouper, Grouper group URLs + presets); routes.py: /api/user-lookup/urls, /api/user-lookup/grouper-presets, /api/user-lookup/group-url
+  user_lookup/      # urls.py: URL builders (IDM Consolidation/Password, Grouper person) + full-URL Grouper group presets; routes.py: /api/user-lookup/urls, /api/user-lookup/grouper-presets
 templates/          # routes.py: page routes; base.html + per-page Jinja templates
 static/             # compass.css, compass.js, dist/ (extension ZIPs)
-browser_extension/  # Chrome extension (Manifest V3) — popup + url_helpers.js (URL builders, tab-reuse matcher) + build docs
+browser_extension/  # Chrome extension (Manifest V3) — popup + url_helpers.js (URL builders, tab-reuse matcher) + changelog.html (user changelog) + build docs
 docs/               # Design specs and plans (docs/superpowers/)
 .opencode/plans/    # Implementation plans
 .superpowers/sdd/   # Subagent-driven-development task briefs/reports/progress
@@ -43,7 +58,7 @@ major-improvements-implementation-status.md  # Tests/CI/hardening program tracki
 - **Frontend:** Jinja2 server-rendered templates, vanilla JS (no frameworks), custom CSS
 - **Extension:** Chrome Manifest V3, vanilla JS, `chrome.storage.local` (history + app URL only)
 - **Deploy:** Docker multi-stage build, Docker Compose (prod + dev overlays), Nextcloud WebDAV for distribution
-- **Tests:** pytest (run via Docker `pcm-test` image — host has no usable Python) + `node --test` for extension `url_helpers.js`. CI not yet wired — **planned** (see `major-improvements-implementation-status.md`)
+- **Tests:** pytest (run via Docker `pcm-test` image — host has no usable Python) + `node --test` for extension `url_helpers.js` and the `build_extension` deploy guard. CI not yet wired — **planned** (see `major-improvements-implementation-status.md`)
 
 ## API Endpoints
 
@@ -64,8 +79,7 @@ major-improvements-implementation-status.md  # Tests/CI/hardening program tracki
 | POST | `/api/links/categories` | admin | Add empty category (JSON: name) |
 | DELETE | `/api/links/categories/<id>` | admin | Remove empty category (409 if non-empty, 404 if unknown) |
 | GET | `/api/user-lookup/urls?user_id=X` | none | Return IDM/Grouper URLs for a user |
-| GET | `/api/user-lookup/grouper-presets` | none | Preset Grouper groups (`{"presets":[{"id","label","name","url"}]}`) |
-| GET | `/api/user-lookup/group-url?name=X` | none | Build Grouper group URL for a stem/name |
+| GET | `/api/user-lookup/grouper-presets` | none | Preset Grouper groups (`{"presets":[{"id","label","url"}]}`) |
 
 Pages: `/` (dashboard), `/printer-search`, `/quick-links`, `/user-lookup`, `/download-extension`, `/download-extension/zip`.
 
@@ -84,7 +98,7 @@ Pages: `/` (dashboard), `/printer-search`, `/quick-links`, `/user-lookup`, `/dow
 
 ## Development Workflow
 
-- **Test/lint first:** pytest suite in `tests/` runs via Docker (`docker run --rm -v "$PWD:/app" -w /app pcm-test bash -c "pip install -q pytest && python -m pytest -p no:cacheprovider -q"`); extension JS via `node --test tests/url_helpers.test.js`. CI is still the active improvement program (see status doc) — prefer writing/updating tests in the same change as code.
+- **Test/lint first:** pytest suite in `tests/` runs via Docker (`docker run --rm -v "$PWD:/app" -w /app pcm-test bash -c "pip install -q pytest && python -m pytest -p no:cacheprovider -q"`); extension JS via `node --test tests/url_helpers.test.js tests/build_extension.test.js`. CI is still the active improvement program (see status doc) — prefer writing/updating tests in the same change as code.
 - **Module pattern:** each feature = `modules/<name>/` with `engine.py` (logic) + `routes.py` (blueprint) + `__init__.py`; page templates extend `templates/base.html`.
 - **Conventions:** JSON endpoints prefixed `/api/`; vanilla JS only; NWU green `#006633`/`#4a8c6f`; no external JS frameworks.
 - **Planning:** larger work goes through superpowers — spec in `docs/superpowers/specs/`, plan in `.opencode/plans/` (or `docs/superpowers/plans/`), execute via subagent-driven development with task briefs/reports under `.superpowers/sdd/`. Commit per task.

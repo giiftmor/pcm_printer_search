@@ -25,17 +25,9 @@
 
 <div class="card">
     <h3>Grouper Groups</h3>
-    <p>Open a Grouper group in a new tab, or enter a group path manually.</p>
+    <p>Open a common Grouper group in a new tab.</p>
 
     <div class="chip-grid" id="grouperChips"></div>
-
-    <div class="search-group">
-        <input type="text" id="groupId" placeholder="Group path or name, e.g. nwu:groups:Azure:Azure_Include_Staff">
-    </div>
-
-    <div class="search-group">
-        <button class="btn btn-primary" onclick="openGrouperGroup()">Open</button>
-    </div>
 </div>
 
 <script>
@@ -90,29 +82,6 @@ async function loadGrouperPresets() {
 function openGroupUrl(url) {
     window.open(url, '_blank', 'noopener,noreferrer');
 }
-
-async function openGrouperGroup() {
-    const name = document.getElementById('groupId').value.trim();
-    if (!name) {
-        alert('Please enter a group path or name');
-        return;
-    }
-    try {
-        const resp = await fetch(`/api/user-lookup/group-url?name=${encodeURIComponent(name)}`);
-        const data = await resp.json();
-        if (data.error) {
-            alert(data.error);
-            return;
-        }
-        openGroupUrl(data.url);
-    } catch (err) {
-        alert('Error: ' + err.message);
-    }
-}
-
-document.getElementById('groupId').addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') openGrouperGroup();
-});
 
 loadGrouperPresets();
 </script>

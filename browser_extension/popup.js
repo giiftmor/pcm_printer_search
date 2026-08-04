@@ -61,7 +61,8 @@ document.getElementById('printerSearchBtn').addEventListener('click', async () =
     findOrCreateTab(`${appUrl}/printer-search?q=${encodeURIComponent(v)}`, p);
 });
 
-document.getElementById('printerOpenBtn').addEventListener('click', async () => {
+document.getElementById('openAppLink').addEventListener('click', async e => {
+    e.preventDefault();
     const appUrl = await getAppUrl();
     const p = await printerHostPattern();
     findOrCreateTab(`${appUrl}/printer-search`, p);
@@ -103,8 +104,7 @@ document.getElementById('grouperBtn').addEventListener('click', () => {
     findOrCreateTab(url, { hostPattern: '*://grp.nwu.ac.za/*', pathPrefix: '/grouper/' });
 });
 
-function openGrouperGroup(name) {
-    const url = PCM_URL_HELPERS.buildGrouperGroupURL(name);
+function openGrouperGroup(url) {
     if (!url) return;
     findOrCreateTab(url, { hostPattern: '*://grp.nwu.ac.za/*', pathPrefix: '/grouper/' });
 }
@@ -116,19 +116,9 @@ function renderGrouperGroupChips() {
         `<button class="chip" data-idx="${i}">${p.label}</button>`
     ).join('');
     grid.querySelectorAll('.chip').forEach(btn => {
-        btn.addEventListener('click', () => openGrouperGroup(presets[btn.dataset.idx].name));
+        btn.addEventListener('click', () => openGrouperGroup(presets[btn.dataset.idx].url));
     });
 }
-
-document.getElementById('grouperGroupOpenBtn').addEventListener('click', () => {
-    const v = document.getElementById('groupIdInput').value.trim();
-    if (!v) return;
-    openGrouperGroup(v);
-});
-
-document.getElementById('groupIdInput').addEventListener('keypress', e => {
-    if (e.key === 'Enter') document.getElementById('grouperGroupOpenBtn').click();
-});
 
 const DEFAULT_CATEGORIES = [
     { name: 'Portals', links: [
@@ -185,8 +175,57 @@ document.getElementById('userIdInput').addEventListener('keypress', e => {
     if (e.key === 'Enter') document.getElementById('idmConsolidationBtn').click();
 });
 
-document.getElementById('settingsBtn').addEventListener('click', () => {
-    chrome.runtime.openOptionsPage();
+const settingsPanel = document.getElementById('settingsPanel');
+const settingsBtn = document.getElementById('settingsBtn');
+
+function toggleSettings() {
+    settingsPanel.classList.toggle('hidden');
+    if (!settingsPanel.classList.contains('hidden')) {
+        getAppUrl().then(url => { document.getElementById('appUrlInput').value = url; });
+    }
+}
+
+settingsBtn.addEventListener('click', toggleSettings);
+
+document.getElementById('appUrlSaveBtn').addEventListener('click', () => {
+    let url = document.getElementById('appUrlInput').value.trim();
+    if (!url) return;
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        url = 'http://' + url;
+    }
+    chrome.storage.local.set({ app_url: url }, () => {
+        settingsPanel.classList.add('hidden');
+        loadQuickLinks();
+    });
+});
+
+document.getElementById('appUrlResetBtn').addEventListener('click', () => {
+    chrome.storage.local.remove('app_url', () => {
+        document.getElementById('appUrlInput').value = DEFAULT_APP_URL;
+        settingsPanel.classList.add('hidden');
+        loadQuickLinks();
+    });
+});
+
+async function checkReloadNeeded() {
+    const manifestVersion = chrome.runtime.getManifest().version;
+    try {
+        const res = await fetch(chrome.runtime.getURL('version.json'));
+        const data = await res.json();
+        if (data.version && data.version !== manifestVersion) {
+            document.getElementById('reloadBanner').classList.remove('hidden');
+        }
+    } catch (e) {
+        // version.json missing — assume up to date
+    }
+}
+
+document.getElementById('extVersion').textContent =
+    `v${chrome.runtime.getManifest().version}`;
+
+document.getElementById('whatsNewLink').addEventListener('click', e => {
+    e.preventDefault();
+    chrome.tabs.create({ url: chrome.runtime.getURL('changelog.html') });
 });
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -194,4 +233,5 @@ document.addEventListener('DOMContentLoaded', () => {
     populateDatalist('user-history', STORAGE_KEYS.userId);
     loadQuickLinks();
     renderGrouperGroupChips();
+    checkReloadNeeded();
 });

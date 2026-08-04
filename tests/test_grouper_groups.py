@@ -1,56 +1,36 @@
-from modules.user_lookup.urls import build_grouper_group_url, GROUPER_GROUP_PRESETS
-
-GROUP_URL = "https://grp.nwu.ac.za/grouper/populateSubjectSummary.do"
-
-
-def test_build_grouper_group_url_basic():
-    url = build_grouper_group_url("nwu:groups:Azure:Azure_Include_Staff")
-    assert url.startswith(GROUP_URL + "?")
-    assert "typeName=group" in url
-    assert "subjectType=group" in url
-    assert "sourceId=g%3Agsa" in url
-    assert "name=nwu%3Agroups%3AAzure%3AAzure_Include_Staff" in url
-    assert "returnTo=%2FdoSearchSubjects.do" in url
-
-
-def test_build_grouper_group_url_optional_description():
-    url = build_grouper_group_url(
-        "nwu:groups:Adobe:Acrobat_fedID_users_include", "Acrobat Include"
-    )
-    assert "description=Acrobat%20Include" in url
-
-
-def test_build_grouper_group_url_no_description_by_default():
-    url = build_grouper_group_url("nwu:groups:Azure:Azure_Include_Staff")
-    assert "description=" not in url
-
-
-def test_build_grouper_group_url_rejects_invalid():
-    assert build_grouper_group_url("") is None
-    assert build_grouper_group_url("   ") is None
-    assert build_grouper_group_url(None) is None
-
-
-def test_build_grouper_group_url_trims():
-    url = build_grouper_group_url("  nwu:groups:Azure:Azure_Include_Staff  ")
-    assert "name=nwu%3Agroups%3AAzure%3AAzure_Include_Staff" in url
-
+from modules.user_lookup.urls import GROUPER_GROUP_PRESETS
 
 EXPECTED_PRESETS = [
-    {"id": "papercut-staff", "label": "Papercut Staff Include", "name": "Papercut_pcm_staff_include"},
-    {"id": "azure-staff", "label": "Azure Staff", "name": "nwu:groups:Azure:Azure_Include_Staff"},
-    {"id": "ms-full-staff", "label": "MS Full Staff License", "name": "nwu:groups:mslicenses:msfed_include_full_staff_license"},
-    {"id": "ms-activate", "label": "MS Activate", "name": "nwu:groups:mslicenses:ms_activate"},
-    {"id": "azure-students", "label": "Azure Students", "name": "nwu:groups:Azure:Azure_Include_Students"},
-    {"id": "acrobat", "label": "Acrobat", "name": "nwu:groups:Adobe:Acrobat_fedID_users"},
-    {"id": "acrobat-include", "label": "Acrobat Include", "name": "nwu:groups:Adobe:Acrobat_fedID_users_include"},
+    {"id": "papercut-staff", "label": "Papercut Staff Include", "url": "https://grp.nwu.ac.za/grouper/populateSubjectSummary.do?returnToLinkKey=subject.action.return-results&id=928bd04dcf244ccf8a8a6d61c78dd7b1&typeName=group&returnTo=%2FdoSearchSubjects.do&description=Papercut_pcm_staff_include&subjectId=928bd04dcf244ccf8a8a6d61c78dd7b1&name=nwu%3Agroups%3Apapercut%3APapercut_pcm_staff_include&subjectType=group&sourceId=g%3Agsa"},
+    {"id": "azure-staff", "label": "Azure Staff", "url": "https://grp.nwu.ac.za/grouper/populateSubjectSummary.do?returnToLinkKey=subject.action.return-results&id=8eed182c75ec4b648b64672d2dd8511a&typeName=group&returnTo=%2FdoSearchSubjects.do&description=Add+extra+staff+to+office+365&subjectId=8eed182c75ec4b648b64672d2dd8511a&name=nwu%3Agroups%3AAzure%3AAzure_Include_Staff&subjectType=group&sourceId=g%3Agsa"},
+    {"id": "ms-full-staff", "label": "MS Full Staff License", "url": "https://grp.nwu.ac.za/grouper/populateSubjectSummary.do?returnToLinkKey=subject.action.return-results&id=885780297fb64a3c8e568b29c50f68b8&typeName=group&returnTo=%2FdoSearchSubjects.do&description=msfed_include_full_staff_license&subjectId=885780297fb64a3c8e568b29c50f68b8&name=nwu%3Agroups%3Amslicenses%3Amsfed_include_full_staff_license&subjectType=group&sourceId=g%3Agsa"},
+    {"id": "ms-activate", "label": "MS Activate", "url": "https://grp.nwu.ac.za/grouper/populateSubjectSummary.do?returnToLinkKey=subject.action.return-results&id=bc7da4ab2b0d4e97852f42a343a530c7&typeName=group&returnTo=%2FdoSearchSubjects.do&description=ms_activate&subjectId=bc7da4ab2b0d4e97852f42a343a530c7&name=nwu%3Agroups%3Amslicenses%3Ams_activate&subjectType=group&sourceId=g%3Agsa"},
+    {"id": "azure-students", "label": "Azure Students", "url": "https://grp.nwu.ac.za/grouper/populateSubjectSummary.do?returnToLinkKey=subject.action.return-results&id=fefea6d36fdc4d12acde72596648d0ba&typeName=group&returnTo=%2FdoSearchSubjects.do&description=Add+extra+students+to+office+365&subjectId=fefea6d36fdc4d12acde72596648d0ba&name=nwu%3Agroups%3AAzure%3AAzure_Include_Students&subjectType=group&sourceId=g%3Agsa"},
+    {"id": "acrobat", "label": "Acrobat", "url": "https://grp.nwu.ac.za/grouper/populateSubjectSummary.do?returnToLinkKey=subject.action.return-results&id=62d5747d54314b1f96cda7cbc54afdf2&typeName=group&returnTo=%2FdoSearchSubjects.do&description=Acrobat_fedID_users&subjectId=62d5747d54314b1f96cda7cbc54afdf2&name=nwu%3Agroups%3AAdobe%3AAcrobat_fedID_users&subjectType=group&sourceId=g%3Agsa"},
+    {"id": "acrobat-include", "label": "Acrobat Include", "url": "https://grp.nwu.ac.za/grouper/populateSubjectSummary.do?returnToLinkKey=subject.action.return-results&id=95653bbe87d646f7829fab2ef82c39e5&typeName=group&returnTo=%2FdoSearchSubjects.do&description=Acrobat_fedID_users_include&subjectId=95653bbe87d646f7829fab2ef82c39e5&name=nwu%3Agroups%3AAdobe%3AAcrobat_fedID_users_include&subjectType=group&sourceId=g%3Agsa"},
 ]
 
 
 def test_presets_have_expected_shape():
     assert GROUPER_GROUP_PRESETS == EXPECTED_PRESETS
     for p in GROUPER_GROUP_PRESETS:
-        assert build_grouper_group_url(p["name"]) is not None
+        assert {"id", "label", "url"} <= set(p)
+        assert p["url"].startswith("https://grp.nwu.ac.za/grouper/populateSubjectSummary.do?")
+        assert "sourceId=g%3Agsa" in p["url"]
+        assert "typeName=group" in p["url"]
+
+
+def test_preset_ids_unique():
+    ids = [p["id"] for p in GROUPER_GROUP_PRESETS]
+    assert len(ids) == len(set(ids))
+
+
+def test_preset_uuid_is_subject_id():
+    for p in GROUPER_GROUP_PRESETS:
+        url = p["url"]
+        id_param = url.split("&id=")[1].split("&")[0]
+        subject_id_param = url.split("&subjectId=")[1].split("&")[0]
+        assert id_param == subject_id_param, f"{p['id']} id/subjectId mismatch"
 
 
 import pytest
@@ -71,22 +51,7 @@ def test_grouper_presets_endpoint(client):
     assert resp.status_code == 200
     data = resp.get_json()
     assert len(data["presets"]) == 7
+    assert data["presets"] == GROUPER_GROUP_PRESETS
     p = data["presets"][0]
-    assert {"id", "label", "name", "url"} <= set(p)
+    assert {"id", "label", "url"} <= set(p)
     assert p["url"].startswith("https://grp.nwu.ac.za/grouper/populateSubjectSummary.do?")
-
-
-def test_group_url_endpoint(client):
-    resp = client.get(
-        "/api/user-lookup/group-url?name=nwu:groups:Azure:Azure_Include_Staff"
-    )
-    assert resp.status_code == 200
-    data = resp.get_json()
-    assert data["name"] == "nwu:groups:Azure:Azure_Include_Staff"
-    assert "name=nwu%3Agroups%3AAzure%3AAzure_Include_Staff" in data["url"]
-
-
-def test_group_url_endpoint_requires_name(client):
-    assert client.get("/api/user-lookup/group-url").status_code == 400
-    assert client.get("/api/user-lookup/group-url?name=").status_code == 400
-    assert client.get("/api/user-lookup/group-url?name=%20%20").status_code == 400
