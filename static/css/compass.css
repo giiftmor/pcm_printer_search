@@ -260,3 +260,20 @@ body {
     text-decoration: underline;
     color: var(--nwu-green-light);
 }
+
+.chip-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+.chip {
+    padding: 6px 14px;
+    background: #e8f0eb;
+    border: 1px solid #006633;
+    border-radius: 16px;
+    color: #006633;
+    font-size: 13px;
+    cursor: pointer;
+}
+.chip:hover { background: #006633; color: #fff; }
