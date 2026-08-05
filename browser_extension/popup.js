@@ -231,6 +231,10 @@ async function checkReloadNeeded() {
     }
 }
 
+document.getElementById('updateNowBtn').addEventListener('click', () => {
+    chrome.runtime.reload();
+});
+
 document.getElementById('extVersion').textContent =
     `v${chrome.runtime.getManifest().version}`;
 

@@ -11,6 +11,7 @@
 - 2026-08-04: Extension "Open App" button moved from the printer row to the popup footer; dead ⚙ settings gear now toggles an inline App URL panel (save/reset via `chrome.storage.local`)
 
 ### Added
+- 2026-08-05: Extension update banner now has an "Update now" button — one-click `chrome.runtime.reload()` (equivalent to the chrome://extensions ↻; re-reads the manifest from disk), shown only when the on-disk `version.json` differs from the loaded manifest (extension v2.3.4)
 - 2026-08-04: Extension auto-prefixes printer hostnames with `P-` when hostname-shaped (`BPKL2` → `P-BPKL2`); serials/MACs/other search terms pass through untouched; Open SVCP now only accepts hostname-shaped input. Detection regex derived from a live workbook scan (`^(p-)?[a-z]{3,12}\d{1,3}$`); new `normalizePrinterHostname` in `url_helpers.js` with node tests (extension v2.3.3)
 - 2026-08-04: Extension reload-nudge — `bin/build-extension.sh` writes `version.json` (from manifest) into the package; popup compares it to the manifest and shows a reload banner on mismatch (extension v2.3.2)
 - 2026-08-04: User-facing extension changelog — in-extension `changelog.html` with a popup footer link ("What's new") and live version read from the manifest (extension v2.3.1)

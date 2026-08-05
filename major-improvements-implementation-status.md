@@ -128,5 +128,6 @@ Follow repo conventions established in previous work:
 | 2026-08-03 | Stream 0 (follow-up) | SVCP as a shared function + printer web links, extension tab-reuse fix, independent app/extension versioning | ✅ |
 | 2026-08-03 | Stream 1 | SVCP URL-builder + enrichment tests, `/api/status` test, `url_helpers.js` node tests | ✅ |
 | 2026-08-04 | Stream 1 | Grouper group lookup — Python + JS group URL builders + 7 presets, 2 API endpoints, web card, extension popup section (pytest `tests/test_grouper_groups.py` + node `buildGrouperGroupURL`/presets cases) | ✅ |
+| 2026-08-05 | Stream 1 (v2.3.4) | Update banner gets an "Update now" button — one-click `chrome.runtime.reload()` (equivalent to chrome://extensions ↻), shown only when on-disk `version.json` ≠ loaded manifest version | ✅ |
 | 2026-08-04 | Stream 1 (v2.3.3) | Popup tab-pattern crash fix (`.host` → `.hostname`, `tabs.query` fallback) + auto `P-` prefix for hostname-shaped printer input (`normalizePrinterHostname`, detection regex from live workbook scan); Open SVCP gated to hostname-shaped input | ✅ |
 | 2026-08-04 | Stream 1 (v2.3.2) | Grouper presets → full URLs `{id,label,url}`, free-text lookup removed (`group-url` endpoint dropped), inline App URL settings, reload-nudge banner via `version.json`, "Open app" to footer | ✅ |
