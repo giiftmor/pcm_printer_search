@@ -44,6 +44,22 @@
     const NWU_SUFFIX = '.nwu.ac.za';
     const LABEL_RE = /^(?!-)[a-z0-9-]{1,63}(?<!-)$/;
 
+    const PREFIX_RE = /^p-/i;
+    const HOSTNAME_SHAPE_RE = /^[a-z]{3,12}\d{1,3}$/i;
+    const NOTES_RE = /\s*\(.*\)\s*$/;
+
+    // Detects hostname-shaped input (e.g. "BPKL2", "P-BPKL2", "p-ivdl4").
+    // Returns "P-{stem}" when the value looks like a printer hostname, else null.
+    // Never touches serials, MACs, locations, or junk.
+    function normalizePrinterHostname(raw) {
+        if (typeof raw !== 'string') return null;
+        let name = raw.trim().replace(NOTES_RE, '').trim();
+        if (!name) return null;
+        const stem = name.replace(PREFIX_RE, '');
+        if (!HOSTNAME_SHAPE_RE.test(stem)) return null;
+        return 'P-' + stem;
+    }
+
     function buildSvcpUrl(hostname) {
         if (typeof hostname !== 'string') return null;
         let name = hostname.trim().toLowerCase();
@@ -77,6 +93,7 @@
         buildGrouperURL: buildGrouperURL,
         matchesPrefix: matchesPrefix,
         buildSvcpUrl: buildSvcpUrl,
+        normalizePrinterHostname: normalizePrinterHostname,
         GROUPER_GROUP_PRESETS: GROUPER_GROUP_PRESETS
     };
 }));

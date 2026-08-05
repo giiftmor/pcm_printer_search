@@ -42,6 +42,34 @@ test('buildSvcpUrl', () => {
     assert.strictEqual(h.buildSvcpUrl('a/b'), null);
 });
 
+test('normalizePrinterHostname prefixes bare hostname-shaped input', () => {
+    assert.strictEqual(h.normalizePrinterHostname('BPKL2'), 'P-BPKL2');
+    assert.strictEqual(h.normalizePrinterHostname('  FMSL6  '), 'P-FMSL6');
+    assert.strictEqual(h.normalizePrinterHostname('P-BPKL2'), 'P-BPKL2');
+    assert.strictEqual(h.normalizePrinterHostname('p-ivdl4'), 'P-ivdl4');
+    assert.strictEqual(h.normalizePrinterHostname('IBAVL1'), 'P-IBAVL1');
+    assert.strictEqual(h.normalizePrinterHostname('SNSL12'), 'P-SNSL12');
+});
+
+test('normalizePrinterHostname strips trailing notes then prefixes', () => {
+    assert.strictEqual(h.normalizePrinterHostname('P-TEGL6 (Replaced)'), 'P-TEGL6');
+    assert.strictEqual(h.normalizePrinterHostname('BPKL2 (Current)'), 'P-BPKL2');
+});
+
+test('normalizePrinterHostname rejects serials, MACs, and junk', () => {
+    assert.strictEqual(h.normalizePrinterHostname('0000000000'), null);
+    assert.strictEqual(h.normalizePrinterHostname('A000A000000'), null);
+    assert.strictEqual(h.normalizePrinterHostname('aa:bb:cc:dd:ee:ff'), null);
+    assert.strictEqual(h.normalizePrinterHostname('RNP00267381D0CB'), null);
+    assert.strictEqual(h.normalizePrinterHostname('Lab A'), null);
+    assert.strictEqual(h.normalizePrinterHostname('mp-301'), null);
+    assert.strictEqual(h.normalizePrinterHostname(''), null);
+    assert.strictEqual(h.normalizePrinterHostname('   '), null);
+    assert.strictEqual(h.normalizePrinterHostname(null), null);
+    assert.strictEqual(h.normalizePrinterHostname(undefined), null);
+    assert.strictEqual(h.normalizePrinterHostname(12345), null);
+});
+
 test('GROUPER_GROUP_PRESETS exact list', () => {
     assert.deepStrictEqual(h.GROUPER_GROUP_PRESETS, [
         { id: 'papercut-staff', label: 'Papercut Staff Include', url: 'https://grp.nwu.ac.za/grouper/populateSubjectSummary.do?returnToLinkKey=subject.action.return-results&id=928bd04dcf244ccf8a8a6d61c78dd7b1&typeName=group&returnTo=%2FdoSearchSubjects.do&description=Papercut_pcm_staff_include&subjectId=928bd04dcf244ccf8a8a6d61c78dd7b1&name=nwu%3Agroups%3Apapercut%3APapercut_pcm_staff_include&subjectType=group&sourceId=g%3Agsa' },

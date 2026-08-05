@@ -33,7 +33,12 @@ function populateDatalist(id, key) {
 }
 
 async function findOrCreateTab(realUrl, opts) {
-    const tabs = await chrome.tabs.query({ url: opts.hostPattern });
+    let tabs;
+    try {
+        tabs = await chrome.tabs.query({ url: opts.hostPattern });
+    } catch (e) {
+        tabs = [];
+    }
     const target = tabs.find(t => PCM_URL_HELPERS.matchesPrefix(t.url, opts.pathPrefix));
     if (target) {
         await chrome.tabs.update(target.id, { url: realUrl, active: true });
@@ -46,15 +51,16 @@ async function findOrCreateTab(realUrl, opts) {
 async function printerHostPattern() {
     const appUrl = await getAppUrl();
     try {
-        return { hostPattern: `*://${new URL(appUrl).host}/*`, pathPrefix: '/printer-search' };
+        return { hostPattern: `*://${new URL(appUrl).hostname}/*`, pathPrefix: '/printer-search' };
     } catch (e) {
         return { hostPattern: '*://*/*', pathPrefix: '/printer-search' };
     }
 }
 
 document.getElementById('printerSearchBtn').addEventListener('click', async () => {
-    const v = document.getElementById('printerInput').value.trim();
-    if (!v) return;
+    const raw = document.getElementById('printerInput').value.trim();
+    if (!raw) return;
+    const v = PCM_URL_HELPERS.normalizePrinterHostname(raw) || raw;
     saveHistory(STORAGE_KEYS.printer, v);
     const appUrl = await getAppUrl();
     const p = await printerHostPattern();
@@ -69,8 +75,13 @@ document.getElementById('openAppLink').addEventListener('click', async e => {
 });
 
 document.getElementById('printerSvcpBtn').addEventListener('click', () => {
-    const v = document.getElementById('printerInput').value.trim();
-    if (!v) return;
+    const v = PCM_URL_HELPERS.normalizePrinterHostname(
+        document.getElementById('printerInput').value
+    );
+    if (!v) {
+        alert('Enter a valid printer hostname');
+        return;
+    }
     const url = PCM_URL_HELPERS.buildSvcpUrl(v);
     if (!url) {
         alert('Invalid printer hostname');
