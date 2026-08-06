@@ -11,6 +11,7 @@
 - 2026-08-04: Extension "Open App" button moved from the printer row to the popup footer; dead ⚙ settings gear now toggles an inline App URL panel (save/reset via `chrome.storage.local`)
 
 ### Added
+- 2026-08-06: SCSM search service implemented (`~/projects/scsm-search`) — read-only Node/TS API over CiresonAnalytics (`SM_WorkItem_Incident`/`SM_WorkItem_ServiceRequest`) + ServiceManager user view; `/v1/search/tickets|users`, `/v1/users/:id/tickets`; per-consumer API keys; SEARCH_MODE fts/like
 - 2026-08-06: SCSM search service design spec — read-only search API over the CiresonAnalytics warehouse (`docs/superpowers/specs/2026-08-06-scsm-search-service-design.md`), validating/refining `docs/scsm-search-architecture.md` (Express 5 + TypeScript, `mssql`, zod, per-consumer API keys, `/v1/` prefix, SEARCH_MODE fts/like fallback); n8n consumes it, PCM Compass app + extension later
 - 2026-08-05: Extension update banner now has an "Update now" button — one-click `chrome.runtime.reload()` (equivalent to the chrome://extensions ↻; re-reads the manifest from disk), shown only when the on-disk `version.json` differs from the loaded manifest (extension v2.3.4)
 - 2026-08-04: Extension auto-prefixes printer hostnames with `P-` when hostname-shaped (`BPKL2` → `P-BPKL2`); serials/MACs/other search terms pass through untouched; Open SVCP now only accepts hostname-shaped input. Detection regex derived from a live workbook scan (`^(p-)?[a-z]{3,12}\d{1,3}$`); new `normalizePrinterHostname` in `url_helpers.js` with node tests (extension v2.3.3)
