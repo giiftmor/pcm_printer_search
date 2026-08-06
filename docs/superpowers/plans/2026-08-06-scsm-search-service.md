@@ -708,7 +708,7 @@ export interface SearchUsersParams {
   pageSize: number;
 }
 
-function userWhere(q?: string): { where: string[]; inputs: Record<string, string> } {
+function userWhere(q?: string): { where: string[]; inputs: Record<string, string | number> } {
   const where: string[] = [];
   const inputs: Record<string, string> = {};
   if (q) {
