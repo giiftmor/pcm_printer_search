@@ -146,3 +146,76 @@ def test_fetch_user_tickets_page_forwards_role(monkeypatch, api_key):
     assert captured["params"]["role"] == "created_by"
     assert captured["params"]["page"] == 2
     assert captured["params"]["pageSize"] == 100
+
+
+@pytest.mark.parametrize("affected,created_by,assigned,expected", [
+    (A, B, C, [("affected", "A"), ("created_by", "B"), ("assigned", "C")]),
+    (A, A, C, [("affected", "A"), ("assigned", "C")]),
+    (A, B, A, [("affected", "A"), ("created_by", "B")]),
+    (A, B, B, [("affected", "A"), ("assigned", "B")]),
+    (A, A, A, [("affected", "A")]),
+    (None, B, None, [("created_by", "B")]),
+    (None, None, C, [("assigned", "C")]),
+    (None, None, None, []),
+])
+def test_dedup_matrix(affected, created_by, assigned, expected):
+    roles = engine.dedup_matrix(affected, created_by, assigned)
+    assert [(r["role"], r["id"]) for r in roles] == expected
+
+
+def test_cache_set_get_roundtrip():
+    cache = engine.RelatedTicketsCache()
+    assert cache.get("GUID", "affected") is None
+    cache.set("GUID", "affected", [{"id": "t1"}], 1)
+    assert cache.get("GUID", "affected")["total"] == 1
+
+
+def test_cache_ttl_expiry():
+    clock = {"now": 100.0}
+    cache = engine.RelatedTicketsCache(ttl_seconds=60, clock=lambda: clock["now"])
+    cache.set("GUID", "affected", [], 0)
+    assert cache.get("GUID", "affected") is not None
+    clock["now"] = 160.0
+    assert cache.get("GUID", "affected") is None
+
+
+def test_cache_warm_accumulates_across_pages():
+    cache = engine.RelatedTicketsCache()
+    seen = []
+
+    def fetch_page(user_id, role, page, page_size):
+        seen.append((user_id, role, page, page_size))
+        if page == 1:
+            return {"results": ["t1"] * 100, "total": 250}
+        if page == 2:
+            return {"results": ["t2"] * 100, "total": 250}
+        return {"results": ["t3"] * 50, "total": 250}
+
+    cache.warm("GUID", "affected", fetch_page, page_size=100)
+    entry = cache.get("GUID", "affected")
+    assert entry is not None
+    assert entry["total"] == 250
+    assert len(entry["results"]) == 250
+    assert seen == [
+        ("GUID", "affected", 1, 100),
+        ("GUID", "affected", 2, 100),
+        ("GUID", "affected", 3, 100),
+    ]
+
+
+def test_cache_warm_is_noop_when_already_fetching():
+    cache = engine.RelatedTicketsCache()
+    assert cache._claim("GUID", "affected") is True
+    cache.warm("GUID", "affected", lambda *a: {"results": [], "total": 0})
+    assert cache.get("GUID", "affected") is None
+
+
+def test_cache_warm_failure_releases_and_does_not_cache():
+    cache = engine.RelatedTicketsCache()
+
+    def fetch_page(user_id, role, page, page_size):
+        raise engine.ScsmUpstreamError(503, "boom")
+
+    cache.warm("GUID", "affected", fetch_page)
+    assert cache.get("GUID", "affected") is None
+    assert cache.is_fetching("GUID", "affected") is False

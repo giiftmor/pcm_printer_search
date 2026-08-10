@@ -104,3 +104,94 @@ def fetch_user_tickets_page(user_id, role, page, page_size):
         f"/v1/users/{user_id}/tickets",
         params={"role": role, "page": page, "pageSize": page_size},
     )
+
+
+import threading
+import time
+
+
+def dedup_matrix(affected, created_by, assigned):
+    roles = []
+    if affected and affected.get("id"):
+        roles.append(("affected", affected))
+    if (
+        created_by
+        and created_by.get("id")
+        and created_by["id"] != (affected or {}).get("id")
+        and created_by["id"] != (assigned or {}).get("id")
+    ):
+        roles.append(("created_by", created_by))
+    if assigned and assigned.get("id") and assigned["id"] != (affected or {}).get("id"):
+        roles.append(("assigned", assigned))
+    return [
+        {"role": role, "id": person["id"], "displayName": person.get("displayName")}
+        for role, person in roles
+    ]
+
+
+class RelatedTicketsCache:
+    TTL_SECONDS = 30 * 60
+
+    def __init__(self, ttl_seconds=None, clock=None):
+        self._ttl = ttl_seconds if ttl_seconds is not None else self.TTL_SECONDS
+        self._clock = clock or time.monotonic
+        self._lock = threading.Lock()
+        self._data = {}
+        self._inflight = set()
+
+    def get(self, user_id, role):
+        with self._lock:
+            entry = self._data.get((user_id, role))
+            if entry is not None and self._clock() - entry["loaded_at"] < self._ttl:
+                return entry
+        return None
+
+    def set(self, user_id, role, results, total):
+        with self._lock:
+            self._data[(user_id, role)] = {
+                "results": results,
+                "total": total,
+                "loaded_at": self._clock(),
+            }
+
+    def is_fetching(self, user_id, role):
+        with self._lock:
+            return (user_id, role) in self._inflight
+
+    def _claim(self, user_id, role):
+        with self._lock:
+            if (user_id, role) in self._inflight:
+                return False
+            self._inflight.add((user_id, role))
+            return True
+
+    def _release(self, user_id, role):
+        with self._lock:
+            self._inflight.discard((user_id, role))
+
+    def warm(self, user_id, role, fetch_page, page_size=100):
+        if not self._claim(user_id, role):
+            return
+        try:
+            page = 1
+            accumulated = []
+            total = None
+            while True:
+                data = fetch_page(user_id, role, page, page_size)
+                results = data.get("results") or []
+                accumulated.extend(results)
+                total = data.get("total")
+                if total is None:
+                    break
+                if page * page_size >= total or not results:
+                    break
+                page += 1
+            if total is not None:
+                self.set(user_id, role, accumulated, total)
+        except Exception:
+            logger.exception("Related tickets fetch failed for %s/%s", user_id, role)
+        finally:
+            self._release(user_id, role)
+
+
+related_cache = RelatedTicketsCache()
