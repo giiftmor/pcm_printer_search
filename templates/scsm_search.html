@@ -174,9 +174,13 @@
       fetch('/api/scsm/tickets', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q: q }) }),
       fetch('/api/scsm/users', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q: q }) }),
     ]).then(function (rs) {
+      if (!rs[0].ok || !rs[1].ok) {
+        setStatus('Search failed — is the SCSM API configured?');
+        return;
+      }
       return Promise.all(rs.map(function (r) { return r.json(); }));
     }).then(function (data) {
-      if (state.query !== q) return;
+      if (!data || state.query !== q) return;
       state.lastSearchData = { tickets: data[0].results || [], users: data[1].results || [] };
       setStatus('');
       renderTabs([], data[0].total);
