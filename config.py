@@ -19,3 +19,6 @@ class Config:
     WORKBOOK_URL = os.getenv("WORKBOOK_URL", "https://nextcloud.nwu.ac.za/index.php/s/4RdDP4qX3mMoXc7")
     DATA_REFRESH_INTERVAL = int(os.getenv("DATA_REFRESH_INTERVAL", "60"))
     QUICK_LINKS_FILE = os.getenv("QUICK_LINKS_FILE", "quick_links.json")
+    SCSM_API_URL = os.getenv("SCSM_API_URL", "http://scsm-search:3000")
+    SCSM_API_KEY = os.getenv("SCSM_API_KEY", "")
+    SCSM_PORTAL_BASE = os.getenv("SCSM_PORTAL_BASE", "https://support.nwu.ac.za")
