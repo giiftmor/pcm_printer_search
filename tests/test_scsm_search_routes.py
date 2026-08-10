@@ -136,6 +136,8 @@ def test_related_returns_deduped_tabs_and_kicks_fetch(client, monkeypatch):
     assert resp.status_code == 200
     data = resp.get_json()
     assert [t["role"] for t in data["tabs"]] == ["affected", "assigned"]
+    assert data["tabs"][0]["id"] == "A"
+    assert data["tabs"][1]["id"] == "B"
     assert data["tabs"][0]["count"] == 5
     assert data["tabs"][1]["count"] is None
     assert data["primary"] == {

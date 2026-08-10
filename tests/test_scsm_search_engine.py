@@ -186,10 +186,10 @@ def test_cache_warm_accumulates_across_pages():
     def fetch_page(user_id, role, page, page_size):
         seen.append((user_id, role, page, page_size))
         if page == 1:
-            return {"results": ["t1"] * 100, "total": 250}
+            return {"results": [{"workItemId": "IR1", "ticketType": "incident"}] * 100, "total": 250}
         if page == 2:
-            return {"results": ["t2"] * 100, "total": 250}
-        return {"results": ["t3"] * 50, "total": 250}
+            return {"results": [{"workItemId": "SR2", "ticketType": "servicerequest"}] * 100, "total": 250}
+        return {"results": [{"workItemId": "IR3", "ticketType": "incident"}] * 50, "total": 250}
 
     cache.warm("GUID", "affected", fetch_page, page_size=100)
     entry = cache.get("GUID", "affected")
@@ -201,6 +201,18 @@ def test_cache_warm_accumulates_across_pages():
         ("GUID", "affected", 2, 100),
         ("GUID", "affected", 3, 100),
     ]
+
+
+def test_cache_warm_enriches_rows_with_scsm_url():
+    cache = engine.RelatedTicketsCache()
+
+    def fetch_page(user_id, role, page, page_size):
+        return {"results": [{"id": "t1", "workItemId": "IR2", "ticketType": "servicerequest"}], "total": 1}
+
+    cache.warm("GUID", "affected", fetch_page)
+    entry = cache.get("GUID", "affected")
+    assert entry is not None
+    assert entry["results"][0]["scsm_url"] == "https://support.nwu.ac.za/ServiceRequest/Edit/IR2/"
 
 
 def test_cache_warm_is_noop_when_already_fetching():

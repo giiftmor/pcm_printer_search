@@ -187,7 +187,7 @@ class RelatedTicketsCache:
                     break
                 page += 1
             if total is not None:
-                self.set(user_id, role, accumulated, total)
+                self.set(user_id, role, enrich_rows(accumulated), total)
         except Exception:
             logger.exception("Related tickets fetch failed for %s/%s", user_id, role)
         finally:

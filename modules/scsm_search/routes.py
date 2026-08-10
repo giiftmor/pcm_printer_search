@@ -89,6 +89,7 @@ def related():
             _spawn_warm(r["id"], r["role"])
         tabs.append({
             "role": r["role"],
+            "id": r["id"],
             "label": engine.ROLE_LABELS[r["role"]],
             "user": r["displayName"],
             "count": count,

@@ -74,6 +74,7 @@
     user: null,
     roles: [],
     activeRole: null,
+    tabs: null,
     pollTimer: null,
     lastSearch: null,
     lastSearchData: null,
@@ -82,7 +83,7 @@
   function esc(s) {
     var div = document.createElement('div');
     div.textContent = s == null ? '' : String(s);
-    return div.innerHTML;
+    return div.innerHTML.replace(/"/g, '&quot;');
   }
 
   function setStatus(text) {
@@ -99,6 +100,7 @@
     state.user = null;
     state.roles = [];
     state.activeRole = null;
+    state.tabs = null;
     renderTabs([]);
   }
 
@@ -259,14 +261,15 @@
     queryEl.value = '';
     if (fromTicket) {
       fetch('/api/scsm/related', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ticket: fromTicket }) })
-        .then(function (r) { return r.json(); })
+        .then(function (r) { if (!r.ok) throw new Error('related-fetch'); return r.json(); })
         .then(function (data) {
           if (!state.user || state.user.id !== user.id) return;
           state.activeRole = data.tabs.length ? data.tabs[0].role : null;
+          state.tabs = data.tabs;
           renderTabs(data.tabs);
           if (state.activeRole) loadRoleTickets(state.activeRole);
         })
-        .catch(function () { setStatus('Could not load related tickets.'); });
+        .catch(function () { setStatus('Related tickets unavailable — SCSM API error.'); });
     } else {
       var roles = [
         { role: 'affected', label: 'Affected user', user: user, count: null },
@@ -274,6 +277,7 @@
         { role: 'assigned', label: 'Assigned', user: user, count: null },
       ];
       state.activeRole = 'affected';
+      state.tabs = null;
       renderTabs(roles);
       loadRoleTickets('affected');
     }
@@ -281,9 +285,18 @@
 
   function loadRoleTickets(role) {
     if (!state.user) return;
-    var url = '/api/scsm/users/' + encodeURIComponent(state.user.id) + '/tickets?role=' + encodeURIComponent(role);
-    fetch(url).then(function (r) { return r.json(); }).then(function (data) {
-      if (!state.user || state.activeRole !== role) return;
+    var uid = state.user.id;
+    if (state.tabs) {
+      for (var i = 0; i < state.tabs.length; i++) {
+        if (state.tabs[i].role === role) { uid = state.tabs[i].id; break; }
+      }
+    }
+    var url = '/api/scsm/users/' + encodeURIComponent(uid) + '/tickets?role=' + encodeURIComponent(role);
+    fetch(url).then(function (r) {
+      if (!r.ok) { setStatus('Related tickets unavailable — SCSM API error.'); return null; }
+      return r.json();
+    }).then(function (data) {
+      if (!data || !state.user || state.activeRole !== role) return;
       if (data.ready) {
         updateTabCount(role, data.total);
         setStatus('');
@@ -295,7 +308,7 @@
         renderPlaceholder();
         state.pollTimer = setTimeout(function () { loadRoleTickets(role); }, 2000);
       }
-    }).catch(function () { setStatus('Could not load related tickets.'); });
+    }).catch(function () { setStatus('Related tickets unavailable — SCSM API error.'); });
   }
 
   function updateTabCount(role, count) {
