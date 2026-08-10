@@ -40,3 +40,6 @@ nwu-redirect-extension.crx
 quick_links.json
 # Worktrees
 .worktrees/
+
+# Superpowers brainstorm companion
+.superpowers/

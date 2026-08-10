@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Added
+- 2026-08-10: PCM Compass SCSM Search integration design spec — split-pane agent workspace page (Google-style search results + relationship tabs: All results / Affected user / Created by / Assigned) backed by the live scsm-search API; scsm-search backend additions (WorkItemId in `q`, `createdByUser`/`assignedUser` in ticket responses, `role` param on `/v1/users/:id/tickets`); background "other tickets" cache (30-min TTL, in-process) with progressive-disclosure delay model (`docs/superpowers/specs/2026-08-10-scsm-search-compass-integration-design.md`)
+
 ### Fixed
 - 2026-08-04: Extension popup crash on Search/Open app when the app URL has a port (e.g. `196.252.15.214:5000`) — tab match pattern built from `new URL(appUrl).hostname` (no port) with a `tabs.query` fallback to `tabs.create` (extension v2.3.3)
 - 2026-08-04: Extension popup crash (`PCM_URL_HELPERS is not defined`) — `bin/build-extension.sh` `EXT_FILES` now includes `url_helpers.js`, so the Nextcloud `pcm-compass/` per-file folder ships it; regression guarded by `tests/build_extension.test.js`
