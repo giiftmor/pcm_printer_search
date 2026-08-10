@@ -12,10 +12,12 @@ def create_app():
     from modules.printer_search.routes import printer_bp
     from modules.quick_links.routes import links_bp
     from modules.user_lookup import bp as user_lookup_bp
+    from modules.scsm_search import bp as scsm_search_bp
 
     app.register_blueprint(printer_bp)
     app.register_blueprint(links_bp)
     app.register_blueprint(user_lookup_bp)
+    app.register_blueprint(scsm_search_bp)
 
     from templates.routes import pages_bp
     app.register_blueprint(pages_bp)
