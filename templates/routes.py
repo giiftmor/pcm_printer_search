@@ -48,6 +48,11 @@ def user_lookup():
     return render_template("user_lookup.html")
 
 
+@pages_bp.route("/scsm-search")
+def scsm_search():
+    return render_template("scsm_search.html")
+
+
 @pages_bp.route("/download-extension")
 def download_extension():
     dist_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static", "dist")

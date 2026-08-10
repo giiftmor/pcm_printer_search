@@ -1,0 +1,323 @@
+{% extends "base.html" %}
+
+{% block title %}PCM Compass - SCSM Search{% endblock %}
+
+{% block header %}SCSM Search{% endblock %}
+
+{% block content %}
+<div class="scsm-layout">
+  <section class="scsm-master">
+    <div class="scsm-searchbar">
+      <span class="scsm-search-icon">⌕</span>
+      <input id="scsm-query" type="text" placeholder="Search by ticket ID, keyword, or user name…"
+             autocomplete="off" spellcheck="false" aria-label="Search SCSM">
+      <kbd class="scsm-kbd">Ctrl&nbsp;K</kbd>
+    </div>
+    <div id="scsm-tabs" class="scsm-tabs" hidden></div>
+    <div id="scsm-status" class="scsm-status" hidden></div>
+    <div id="scsm-results" class="scsm-results" aria-live="polite"></div>
+  </section>
+
+  <section class="scsm-detail">
+    <div id="scsm-detail-empty" class="scsm-detail-empty">Select a ticket to see its details.</div>
+    <div id="scsm-detail" class="scsm-detail-content" hidden></div>
+  </section>
+</div>
+
+<style>
+  .scsm-layout { display: flex; gap: 1rem; height: calc(100vh - 12rem); min-height: 30rem; }
+  .scsm-master { flex: 3; display: flex; flex-direction: column; min-width: 0; border: 1px solid #d0d7de; border-radius: 8px; overflow: hidden; background: #fff; }
+  .scsm-searchbar { display: flex; align-items: center; gap: .5rem; padding: .6rem .8rem; border-bottom: 1px solid #d0d7de; }
+  .scsm-searchbar input { flex: 1; border: none; outline: none; font-size: 1rem; }
+  .scsm-search-icon { color: #8b949e; }
+  .scsm-kbd { border: 1px solid #d0d7de; border-radius: 4px; padding: .1rem .35rem; font-size: .7rem; color: #57606a; }
+  .scsm-tabs { display: flex; gap: .25rem; padding: .4rem .8rem 0; border-bottom: 1px solid #d0d7de; }
+  .scsm-tab { background: none; border: none; border-bottom: 2px solid transparent; padding: .4rem .6rem; cursor: pointer; color: #57606a; font-size: .85rem; }
+  .scsm-tab.active { border-bottom-color: #006633; color: #006633; font-weight: 600; }
+  .scsm-tab .scsm-count { color: #8b949e; margin-left: .25rem; }
+  .scsm-results { flex: 1; overflow-y: auto; padding: .25rem 0; }
+  .scsm-status { padding: .4rem .8rem; font-size: .8rem; color: #57606a; }
+  .scsm-result { display: block; width: 100%; text-align: left; padding: .6rem .8rem; border: none; background: none; border-bottom: 1px solid #f0f2f5; cursor: pointer; }
+  .scsm-result:hover { background: #f6f8fa; }
+  .scsm-result .scsm-title { font-size: .95rem; color: #006633; }
+  .scsm-result .scsm-url { font-size: .78rem; color: #4a8c6f; word-break: break-all; }
+  .scsm-result .scsm-snippet { font-size: .82rem; color: #57606a; margin-top: .15rem; }
+  .scsm-type-chip { font-size: .68rem; color: #006633; border: 1px solid #4a8c6f; border-radius: 10px; padding: 0 .4rem; margin-right: .35rem; }
+  .scsm-detail { flex: 2; min-width: 0; border: 1px solid #d0d7de; border-radius: 8px; overflow-y: auto; background: #fff; }
+  .scsm-detail-empty { padding: 1rem; color: #8b949e; }
+  .scsm-detail-content { padding: 1rem; }
+  .scsm-detail-content h3 { margin: 0 0 .4rem; font-size: 1.1rem; }
+  .scsm-detail-content .scsm-url { font-size: .8rem; color: #4a8c6f; word-break: break-all; }
+  .scsm-open { display: inline-block; margin-top: .8rem; padding: .45rem .9rem; background: #006633; color: #fff; border-radius: 6px; text-decoration: none; font-size: .9rem; }
+  .scsm-open:hover { background: #004d26; }
+  .scsm-field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .4rem .8rem; margin-top: .8rem; }
+  .scsm-field-grid dt { color: #8b949e; font-size: .75rem; text-transform: uppercase; }
+  .scsm-field-grid dd { margin: 0; font-size: .9rem; }
+  .scsm-person { background: none; border: none; color: #006633; cursor: pointer; padding: 0; font-size: .9rem; text-decoration: underline; }
+  .scsm-placeholder { padding: .6rem .8rem; color: #8b949e; }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  'use strict';
+  var queryEl = document.getElementById('scsm-query');
+  var tabsEl = document.getElementById('scsm-tabs');
+  var statusEl = document.getElementById('scsm-status');
+  var resultsEl = document.getElementById('scsm-results');
+  var detailEmptyEl = document.getElementById('scsm-detail-empty');
+  var detailEl = document.getElementById('scsm-detail');
+
+  var state = {
+    query: '',
+    user: null,
+    roles: [],
+    activeRole: null,
+    pollTimer: null,
+    lastSearch: null,
+    lastSearchData: null,
+  };
+
+  function esc(s) {
+    var div = document.createElement('div');
+    div.textContent = s == null ? '' : String(s);
+    return div.innerHTML;
+  }
+
+  function setStatus(text) {
+    statusEl.hidden = !text;
+    statusEl.textContent = text || '';
+  }
+
+  function clearList() {
+    resultsEl.innerHTML = '';
+  }
+
+  function exitPerson() {
+    if (state.pollTimer) { clearTimeout(state.pollTimer); state.pollTimer = null; }
+    state.user = null;
+    state.roles = [];
+    state.activeRole = null;
+    renderTabs([]);
+  }
+
+  document.addEventListener('keydown', function (e) {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      queryEl.focus();
+      queryEl.select();
+    }
+  });
+
+  var debounceTimer = null;
+  queryEl.addEventListener('input', function () {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(function () {
+      var q = queryEl.value.trim();
+      if (q === state.query) return;
+      exitPerson();
+      state.query = q;
+      if (q.length < 2) {
+        clearList();
+        setStatus('');
+        detailEmptyEl.hidden = false;
+        detailEl.hidden = true;
+        return;
+      }
+      doSearch(q);
+    }, 250);
+  });
+
+  function renderTabs(roles, allCount) {
+    state.roles = roles;
+    if (!roles.length) {
+      tabsEl.hidden = true;
+      tabsEl.innerHTML = '';
+      return;
+    }
+    tabsEl.hidden = false;
+    var html = '<button class="scsm-tab' + (state.activeRole === null ? ' active' : '') +
+      '" data-role="all">All results' + (allCount != null ? ' <span class="scsm-count">(' + allCount + ')</span>' : '') + '</button>';
+    roles.forEach(function (r) {
+      var count = r.count != null ? ' <span class="scsm-count">(' + r.count + ')</span>' : ' <span class="scsm-count">…</span>';
+      html += '<button class="scsm-tab' + (state.activeRole === r.role ? ' active' : '') +
+        '" data-role="' + r.role + '">' + esc(r.label) + count + '</button>';
+    });
+    tabsEl.innerHTML = html;
+    tabsEl.querySelectorAll('.scsm-tab').forEach(function (btn) {
+      btn.addEventListener('click', function () { onTabClick(btn.getAttribute('data-role')); });
+    });
+  }
+
+  function onTabClick(role) {
+    if (state.pollTimer) { clearTimeout(state.pollTimer); state.pollTimer = null; }
+    if (role === 'all') {
+      state.activeRole = null;
+      renderTabs(state.roles);
+      if (state.lastSearchData) {
+        setStatus('');
+        renderResults(state.lastSearchData.tickets || [], state.lastSearchData.users || []);
+      }
+      return;
+    }
+    state.activeRole = role;
+    renderTabs(state.roles);
+    loadRoleTickets(role);
+  }
+
+  function doSearch(q) {
+    setStatus('Searching…');
+    clearList();
+    state.lastSearch = q;
+    Promise.all([
+      fetch('/api/scsm/tickets', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q: q }) }),
+      fetch('/api/scsm/users', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q: q }) }),
+    ]).then(function (rs) {
+      return Promise.all(rs.map(function (r) { return r.json(); }));
+    }).then(function (data) {
+      if (state.query !== q) return;
+      state.lastSearchData = { tickets: data[0].results || [], users: data[1].results || [] };
+      setStatus('');
+      renderTabs([], data[0].total);
+      renderResults(state.lastSearchData.tickets, state.lastSearchData.users);
+    }).catch(function () {
+      setStatus('Search failed — is the SCSM API configured?');
+    });
+  }
+
+  function renderResults(tickets, users) {
+    var html = '';
+    users.forEach(function (u) {
+      html += '<button class="scsm-result" data-user-id="' + esc(u.id) + '" data-user-name="' + esc(u.displayName) + '">' +
+        '<div class="scsm-title">' + esc(u.displayName) + '</div>' +
+        '<div class="scsm-snippet">' + esc(u.userId) + ' · ' + esc(u.upn) + '</div></button>';
+    });
+    tickets.forEach(function (t) {
+      html += '<button class="scsm-result" data-ticket-id="' + esc(t.id) + '">' +
+        '<div class="scsm-title"><span class="scsm-type-chip">' + esc((t.ticketType || 'ticket').toUpperCase()) + '</span>' + esc(t.workItemId) + ' · ' + esc(t.title) + '</div>' +
+        '<div class="scsm-url">' + esc(t.scsm_url || '') + '</div>' +
+        '<div class="scsm-snippet">' + esc(snippet(t)) + '</div></button>';
+    });
+    if (!html) html = '<div class="scsm-placeholder">No results.</div>';
+    resultsEl.innerHTML = html;
+
+    resultsEl.querySelectorAll('[data-user-id]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        enterPerson({ id: btn.getAttribute('data-user-id'), displayName: btn.getAttribute('data-user-name') }, null);
+      });
+    });
+    resultsEl.querySelectorAll('[data-ticket-id]').forEach(function (btn) {
+      var id = btn.getAttribute('data-ticket-id');
+      var t = tickets.filter(function (x) { return x.id === id; })[0];
+      btn.addEventListener('click', function () { selectTicket(t); });
+    });
+  }
+
+  function snippet(t) {
+    var parts = [];
+    if (t.affectedUser) parts.push('Affected: ' + t.affectedUser.displayName);
+    if (t.createdByUser) parts.push('Created by: ' + t.createdByUser.displayName);
+    parts.push('Status: ' + t.status);
+    if (t.createdDate) parts.push(new Date(t.createdDate).toLocaleDateString());
+    return parts.join(' · ');
+  }
+
+  function selectTicket(t) {
+    detailEmptyEl.hidden = true;
+    detailEl.hidden = false;
+    var grid = '';
+    [['affectedUser', 'Affected'], ['createdByUser', 'Created by'], ['assignedUser', 'Assigned to']].forEach(function (p) {
+      var person = t[p[0]];
+      if (!person) return;
+      grid += '<dt>' + p[1] + '</dt><dd><button class="scsm-person" data-uid="' + esc(person.id) + '" data-name="' + esc(person.displayName) + '">' + esc(person.displayName) + '</button></dd>';
+    });
+    grid += '<dt>Created</dt><dd>' + esc(t.createdDate ? new Date(t.createdDate).toLocaleString() : '') + '</dd>';
+    grid += '<dt>Status</dt><dd>' + esc(t.status) + '</dd>';
+    grid += '<dt>Priority</dt><dd>' + esc(t.priority == null ? '—' : t.priority) + '</dd>';
+    detailEl.innerHTML =
+      '<h3><span class="scsm-type-chip">' + esc((t.ticketType || 'ticket').toUpperCase()) + '</span>' + esc(t.workItemId) + '</h3>' +
+      '<p>' + esc(t.title) + '</p>' +
+      '<div class="scsm-url">' + esc(t.scsm_url || '') + '</div>' +
+      '<dl class="scsm-field-grid">' + grid + '</dl>' +
+      (t.scsm_url ? '<a class="scsm-open" href="' + esc(t.scsm_url) + '" target="_blank" rel="noopener noreferrer">Open in SCSM ↗</a>' : '');
+    detailEl.querySelectorAll('.scsm-person').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        enterPerson({ id: btn.getAttribute('data-uid'), displayName: btn.getAttribute('data-name') }, t);
+      });
+    });
+  }
+
+  function enterPerson(user, fromTicket) {
+    if (state.pollTimer) { clearTimeout(state.pollTimer); state.pollTimer = null; }
+    state.user = user;
+    state.query = '';
+    queryEl.value = '';
+    if (fromTicket) {
+      fetch('/api/scsm/related', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ticket: fromTicket }) })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (!state.user || state.user.id !== user.id) return;
+          state.activeRole = data.tabs.length ? data.tabs[0].role : null;
+          renderTabs(data.tabs);
+          if (state.activeRole) loadRoleTickets(state.activeRole);
+        })
+        .catch(function () { setStatus('Could not load related tickets.'); });
+    } else {
+      var roles = [
+        { role: 'affected', label: 'Affected user', user: user, count: null },
+        { role: 'created_by', label: 'Created by', user: user, count: null },
+        { role: 'assigned', label: 'Assigned', user: user, count: null },
+      ];
+      state.activeRole = 'affected';
+      renderTabs(roles);
+      loadRoleTickets('affected');
+    }
+  }
+
+  function loadRoleTickets(role) {
+    if (!state.user) return;
+    var url = '/api/scsm/users/' + encodeURIComponent(state.user.id) + '/tickets?role=' + encodeURIComponent(role);
+    fetch(url).then(function (r) { return r.json(); }).then(function (data) {
+      if (!state.user || state.activeRole !== role) return;
+      if (data.ready) {
+        updateTabCount(role, data.total);
+        setStatus('');
+        renderRoleResults(data.results || []);
+        if (state.pollTimer) { clearTimeout(state.pollTimer); state.pollTimer = null; }
+      } else {
+        updateTabCount(role, null);
+        setStatus('Loading related tickets…');
+        renderPlaceholder();
+        state.pollTimer = setTimeout(function () { loadRoleTickets(role); }, 2000);
+      }
+    }).catch(function () { setStatus('Could not load related tickets.'); });
+  }
+
+  function updateTabCount(role, count) {
+    state.roles.forEach(function (r) { if (r.role === role) r.count = count; });
+    renderTabs(state.roles);
+  }
+
+  function renderRoleResults(rows) {
+    var html = rows.map(function (t) {
+      return '<button class="scsm-result" data-ticket-id="' + esc(t.id) + '">' +
+        '<div class="scsm-title"><span class="scsm-type-chip">' + esc((t.ticketType || 'ticket').toUpperCase()) + '</span>' + esc(t.workItemId) + ' · ' + esc(t.title) + '</div>' +
+        '<div class="scsm-url">' + esc(t.scsm_url || '') + '</div>' +
+        '<div class="scsm-snippet">' + esc(snippet(t)) + '</div></button>';
+    }).join('');
+    if (!html) html = '<div class="scsm-placeholder">No tickets in this role.</div>';
+    resultsEl.innerHTML = html;
+    resultsEl.querySelectorAll('[data-ticket-id]').forEach(function (btn) {
+      var id = btn.getAttribute('data-ticket-id');
+      var t = rows.filter(function (x) { return x.id === id; })[0];
+      btn.addEventListener('click', function () { selectTicket(t); });
+    });
+  }
+
+  function renderPlaceholder() {
+    resultsEl.innerHTML = '<div class="scsm-placeholder">Gathering tickets…</div>';
+  }
+})();
+</script>
+{% endblock %}
