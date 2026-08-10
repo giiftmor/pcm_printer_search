@@ -42,3 +42,107 @@ def test_enrich_rows_unknown_type_leaves_none_url():
 
 def test_enrich_rows_handles_none():
     assert engine.enrich_rows(None) == []
+
+
+import requests
+
+
+class FakeResp:
+    def __init__(self, status_code, payload, text=""):
+        self.status_code = status_code
+        self._payload = payload
+        self.text = text
+
+    def json(self):
+        return self._payload
+
+
+@pytest.fixture
+def api_key(monkeypatch):
+    monkeypatch.setattr(engine, "SCSM_API_KEY", "test-key")
+
+
+def test_request_not_configured(monkeypatch):
+    monkeypatch.setattr(engine, "SCSM_API_KEY", "")
+    with pytest.raises(engine.ScsmNotConfigured):
+        engine.search_tickets("printer")
+
+
+def test_request_maps_401_to_502(monkeypatch, api_key):
+    def fake_request(method, url, **kwargs):
+        return FakeResp(401, {})
+    monkeypatch.setattr(engine.requests, "request", fake_request)
+    with pytest.raises(engine.ScsmUpstreamError) as ei:
+        engine.search_tickets("printer")
+    assert ei.value.status_code == 502
+
+
+def test_request_maps_timeout_to_503(monkeypatch, api_key):
+    def fake_request(method, url, **kwargs):
+        raise requests.exceptions.Timeout()
+    monkeypatch.setattr(engine.requests, "request", fake_request)
+    with pytest.raises(engine.ScsmUpstreamError) as ei:
+        engine.search_tickets("printer")
+    assert ei.value.status_code == 503
+
+
+def test_request_maps_network_error_to_503(monkeypatch, api_key):
+    def fake_request(method, url, **kwargs):
+        raise requests.exceptions.ConnectionError("boom")
+    monkeypatch.setattr(engine.requests, "request", fake_request)
+    with pytest.raises(engine.ScsmUpstreamError) as ei:
+        engine.search_tickets("printer")
+    assert ei.value.status_code == 503
+
+
+def test_request_passes_through_other_status(monkeypatch, api_key):
+    def fake_request(method, url, **kwargs):
+        return FakeResp(500, {"error": "internal"})
+    monkeypatch.setattr(engine.requests, "request", fake_request)
+    with pytest.raises(engine.ScsmUpstreamError) as ei:
+        engine.search_tickets("printer")
+    assert ei.value.status_code == 500
+
+
+def test_search_tickets_forwards_params_and_header(monkeypatch, api_key):
+    captured = {}
+
+    def fake_request(method, url, **kwargs):
+        captured.update({"method": method, "url": url, "params": kwargs.get("params"), "headers": kwargs.get("headers")})
+        return FakeResp(200, {"results": [], "total": 0})
+
+    monkeypatch.setattr(engine.requests, "request", fake_request)
+    engine.search_tickets("printer", ticket_type="incident", status="Active")
+    assert captured["method"] == "GET"
+    assert captured["url"] == "http://scsm-search:3000/v1/search/tickets"
+    assert captured["params"]["type"] == "incident"
+    assert captured["params"]["q"] == "printer"
+    assert captured["params"]["status"] == "Active"
+    assert captured["headers"]["X-API-Key"] == "test-key"
+
+
+def test_search_users_forwards_q(monkeypatch, api_key):
+    captured = {}
+
+    def fake_request(method, url, **kwargs):
+        captured["params"] = kwargs.get("params")
+        return FakeResp(200, {"results": [], "total": 0})
+
+    monkeypatch.setattr(engine.requests, "request", fake_request)
+    engine.search_users("smith")
+    assert captured["params"]["q"] == "smith"
+
+
+def test_fetch_user_tickets_page_forwards_role(monkeypatch, api_key):
+    captured = {}
+
+    def fake_request(method, url, **kwargs):
+        captured["params"] = kwargs.get("params")
+        return FakeResp(200, {"results": [], "total": 7})
+
+    monkeypatch.setattr(engine.requests, "request", fake_request)
+    data = engine.fetch_user_tickets_page("GUID", "created_by", 2, 100)
+    assert data["total"] == 7
+    assert captured["params"]["role"] == "created_by"
+    assert captured["params"]["page"] == 2
+    assert captured["params"]["pageSize"] == 100
