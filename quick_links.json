@@ -12,7 +12,6 @@
       "id": "seed-printing",
       "name": "Printing",
       "links": [
-        { "id": "seed-print-svcp", "name": "SVCP Portal", "url": "https://svcp.nwu.ac.za", "icon": "🖨️" },
         { "id": "seed-print-papercut", "name": "PaperCut Admin Portal", "url": "http://v-pcut-win1.nwu.ac.za:9191/app", "icon": "🖨️" }
       ]
     },

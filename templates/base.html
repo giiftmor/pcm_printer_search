@@ -5,12 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}PCM Compass{% endblock %}</title>
     <link rel="stylesheet" href="/static/css/compass.css">
-    <link rel="icon" href="/favicon.ico">
+    <link rel="icon" href="/static/nwu-itservicedesk-favicon.ico" type="image/png">
+    {% block head %}{% endblock %}
 </head>
 <body>
     <nav class="sidebar">
         <div class="sidebar-brand">
-            <img src="/static/img/nwu-logo.png" alt="NWU">
+            <img src="/static/nwu-itservicedesk-logo.svg" alt="NWU">
             <h1>PCM Compass</h1>
         </div>
         <div class="sidebar-nav">

@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240">
+  <defs>
+    <linearGradient id="nArm" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#1E7A78"/>
+      <stop offset="100%" stop-color="#3FBFB0"/>
+    </linearGradient>
+    <linearGradient id="wArm" x1="1" y1="0" x2="0" y2="0">
+      <stop offset="0%" stop-color="#1E7A78"/>
+      <stop offset="100%" stop-color="#3FBFB0"/>
+    </linearGradient>
+    <radialGradient id="badgeBg" cx="50%" cy="42%" r="65%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#F1EDF6"/>
+    </radialGradient>
+  </defs>
+
+  <!-- outer ring -->
+  <circle cx="120" cy="120" r="116" fill="url(#badgeBg)" stroke="#4A2170" stroke-width="4"/>
+
+  <!-- muted compass arms: E, S, and all diagonals -->
+  <g fill="#B9AFC9" stroke="#4A2170" stroke-width="1.2" stroke-linejoin="round">
+    <path d="M120.00,120.00 L124.38,114.19 L156.77,83.23 L125.81,115.62 Z"/>
+    <path d="M120.00,120.00 L133.17,118.15 L215.00,120.00 L133.17,121.85 Z"/>
+    <path d="M120.00,120.00 L125.81,124.38 L156.77,156.77 L124.38,125.81 Z"/>
+    <path d="M120.00,120.00 L121.85,133.17 L120.00,215.00 L118.15,133.17 Z"/>
+    <path d="M120.00,120.00 L115.62,125.81 L83.23,156.77 L114.19,124.38 Z"/>
+    <path d="M120.00,120.00 L114.19,115.62 L83.23,83.23 L115.62,114.19 Z"/>
+  </g>
+
+  <!-- emphasised N and W arms -->
+  <g stroke="#2C4A5E" stroke-width="1.4" stroke-linejoin="round">
+    <path d="M120.00,120.00 L118.15,106.83 L120.00,25.00 L121.85,106.83 Z" fill="url(#nArm)"/>
+    <path d="M120.00,120.00 L106.83,121.85 L25.00,120.00 L106.83,118.15 Z" fill="url(#wArm)"/>
+  </g>
+
+  <!-- direction labels -->
+  <g font-family="Arial, Helvetica, sans-serif" font-weight="700" fill="#7A7590" text-anchor="middle">
+    <text x="120" y="20" font-size="0" opacity="0">.</text>
+    <text x="203" y="124" font-size="12">E</text>
+    <text x="120" y="228" font-size="12">S</text>
+    <text x="176" y="66" font-size="9">NE</text>
+    <text x="176" y="180" font-size="9">SE</text>
+    <text x="66" y="180" font-size="9">SW</text>
+  </g>
+  <g font-family="Arial, Helvetica, sans-serif" font-weight="800" text-anchor="middle">
+    <text x="120" y="16" font-size="16" fill="#1E7A78">N</text>
+    <text x="14" y="124" font-size="16" fill="#1E7A78">W</text>
+    <text x="66" y="66" font-size="9" fill="#1E7A78">NW</text>
+  </g>
+
+  <!-- center badge -->
+  <circle cx="120" cy="120" r="34" fill="#FFFFFF" stroke="#4A2170" stroke-width="2.5"/>
+
+  <!-- headset + gear (IT service desk) icon -->
+  <g fill="none" stroke="#4A2170" stroke-width="4.4" stroke-linecap="round">
+    <!-- headband -->
+    <path d="M100,118 A20,20 0 0 1 140,118"/>
+  </g>
+  <g fill="#4A2170">
+    <!-- left ear cup -->
+    <circle cx="100" cy="122" r="8.5"/>
+    <!-- mic boom -->
+    <path d="M100,128 Q98,140 112,142" fill="none" stroke="#4A2170" stroke-width="3.4" stroke-linecap="round"/>
+    <circle cx="113" cy="142.5" r="3.6" fill="#2CA6A4"/>
+  </g>
+  <!-- right ear cup as gear = IT -->
+  <path d="M140.00,109.50 L142.86,112.60 L147.05,112.28 L146.74,116.47 L149.83,119.33 L146.74,122.19 L147.05,126.38 L142.86,126.06 L140.00,129.17 L137.14,126.06 L132.95,126.38 L133.26,122.19 L130.17,119.33 L133.26,116.47 L132.95,112.28 L137.14,112.60 Z" fill="#4A2170"/>
+  <circle cx="140" cy="119.33" r="3.4" fill="#FFFFFF"/>
+
+  <!-- wordmark -->
+  <g font-family="Arial, Helvetica, sans-serif" text-anchor="middle">
+    <text x="120" y="200" font-size="15.5" font-weight="800" fill="#4A2170">NWU</text>
+    <text x="120" y="212" font-size="7.5" font-weight="700" letter-spacing="1.5" fill="#2CA6A4">IT SERVICE DESK</text>
+  </g>
+</svg>
