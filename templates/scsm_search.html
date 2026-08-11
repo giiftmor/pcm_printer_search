@@ -50,6 +50,19 @@
   .scsm-status-active { color: #006633; background: #e6f4ec; }
   .scsm-status-resolved { color: #2b5a9e; background: #e7eefb; }
   .scsm-status-cancelled { color: #9e2b2b; background: #fbe9e9; }
+.scsm-skeleton { display: block; width: 100%; padding: .9rem .9rem; border: none; background: none; border-bottom: 1px solid #f0f2f5; border-radius: 8px; }
+  .scsm-skeleton-bar { display: inline-block; background: #eef0f2; border-radius: 6px; position: relative; overflow: hidden; }
+  .scsm-skeleton-bar::after { content: ""; position: absolute; inset: 0; transform: translateX(-100%); background: linear-gradient(90deg, transparent, rgba(255,255,255,.6), transparent); animation: scsm-shimmer 1.4s infinite; }
+  .scsm-skeleton-chip { width: 1.8rem; height: .85rem; }
+  .scsm-skeleton-title { width: 55%; height: .95rem; margin-top: .4rem; }
+  .scsm-skeleton-meta { margin-top: .5rem; display: flex; align-items: center; gap: .45rem; }
+  .scsm-skeleton-badge { width: 3.4rem; height: .75rem; }
+  .scsm-skeleton-text { width: 30%; height: .75rem; }
+  .scsm-skeleton-text.short { width: 18%; }
+  @keyframes scsm-shimmer { 100% { transform: translateX(100%); } }
+  @media (prefers-reduced-motion: reduce) {
+    .scsm-skeleton-bar::after { animation: none; display: none; }
+  }
   .scsm-detail { flex: 2; min-width: 0; border: 1px solid #d0d7de; border-radius: 8px; overflow-y: auto; background: #fff; }
   .scsm-detail-empty { padding: 1rem; color: #8b949e; }
   .scsm-detail-content { padding: .9rem; display: flex; flex-direction: column; gap: .8rem; }
@@ -106,6 +119,22 @@
 
   function clearList() {
     resultsEl.innerHTML = '';
+  }
+
+  function renderSkeletons(count) {
+    var row =
+      '<div class="scsm-skeleton" aria-hidden="true">' +
+        '<div class="scsm-skeleton-bar scsm-skeleton-chip"></div>' +
+        '<div class="scsm-skeleton-bar scsm-skeleton-title"></div>' +
+        '<div class="scsm-skeleton-meta">' +
+          '<div class="scsm-skeleton-bar scsm-skeleton-badge"></div>' +
+          '<div class="scsm-skeleton-bar scsm-skeleton-text"></div>' +
+          '<div class="scsm-skeleton-bar scsm-skeleton-text short"></div>' +
+        '</div>' +
+      '</div>';
+    var html = '';
+    for (var i = 0; i < count; i++) html += row;
+    resultsEl.innerHTML = html;
   }
 
   function exitPerson() {
@@ -182,8 +211,9 @@
   }
 
   function doSearch(q) {
-    setStatus('Searching…');
+    setStatus('');
     clearList();
+    renderSkeletons(5);
     state.lastSearch = q;
     Promise.all([
       fetch('/api/scsm/tickets', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q: q }) }),
@@ -360,8 +390,8 @@
         if (state.pollTimer) { clearTimeout(state.pollTimer); state.pollTimer = null; }
       } else {
         updateTabCount(role, null);
-        setStatus('Loading related tickets…');
-        renderPlaceholder();
+        setStatus('');
+        renderSkeletons(3);
         state.pollTimer = setTimeout(function () { loadRoleTickets(role); }, 2000);
       }
     }).catch(function () { setStatus('Related tickets unavailable — SCSM API error.'); });
@@ -381,10 +411,6 @@
       var t = rows.filter(function (x) { return x.id === id; })[0];
       btn.addEventListener('click', function () { selectTicket(t); });
     });
-  }
-
-  function renderPlaceholder() {
-    resultsEl.innerHTML = '<div class="scsm-placeholder">Gathering tickets…</div>';
   }
 })();
 </script>
