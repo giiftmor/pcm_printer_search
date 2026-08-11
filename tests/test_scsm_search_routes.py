@@ -66,6 +66,8 @@ def test_tickets_merges_sorts_and_enriches(client, monkeypatch):
     assert data["total"] == 2
     assert [r["workItemId"] for r in data["results"]] == ["SR2", "IR1"]
     assert data["results"][1]["scsm_url"] == "https://support.nwu.ac.za/Incident/Edit/IR1/"
+    assert data["results"][0]["ticketType"] == "servicerequest"
+    assert data["results"][1]["ticketType"] == "incident"
 
 
 def test_tickets_not_configured_returns_503(client, monkeypatch):

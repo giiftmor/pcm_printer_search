@@ -37,22 +37,35 @@
   .scsm-tab .scsm-count { color: #8b949e; margin-left: .25rem; }
   .scsm-results { flex: 1; overflow-y: auto; padding: .25rem 0; }
   .scsm-status { padding: .4rem .8rem; font-size: .8rem; color: #57606a; }
-  .scsm-result { display: block; width: 100%; text-align: left; padding: .6rem .8rem; border: none; background: none; border-bottom: 1px solid #f0f2f5; cursor: pointer; }
+  .scsm-result { display: block; width: 100%; text-align: left; padding: .9rem .9rem; border: none; background: none; border-bottom: 1px solid #f0f2f5; cursor: pointer; }
   .scsm-result:hover { background: #f6f8fa; }
-  .scsm-result .scsm-title { font-size: .95rem; color: #006633; }
-  .scsm-result .scsm-url { font-size: .78rem; color: #4a8c6f; word-break: break-all; }
-  .scsm-result .scsm-snippet { font-size: .82rem; color: #57606a; margin-top: .15rem; }
-  .scsm-type-chip { font-size: .68rem; color: #006633; border: 1px solid #4a8c6f; border-radius: 10px; padding: 0 .4rem; margin-right: .35rem; }
+  .scsm-title { font-size: .95rem; color: #24292f; display: flex; align-items: center; gap: .45rem; flex-wrap: wrap; }
+  .scsm-title-id { color: #006633; }
+  .scsm-meta { font-size: .82rem; color: #57606a; margin-top: .4rem; display: flex; align-items: center; gap: .45rem; flex-wrap: wrap; }
+  .scsm-snippet { font-size: .82rem; color: #57606a; margin-top: .4rem; }
+  .scsm-type-chip { font-size: .68rem; text-decoration: none; color: #fff; background: #57606a; border-radius: 4px; padding: .1rem .4rem; letter-spacing: .03em; }
+  .scsm-type-sr { background: #006633; }
+  .scsm-type-ir { background: #b26a00; }
+  .scsm-status-badge { font-size: .7rem; border-radius: 10px; padding: .1rem .45rem; font-weight: 600; color: #8b949e; background: #eef0f2; }
+  .scsm-status-active { color: #006633; background: #e6f4ec; }
+  .scsm-status-resolved { color: #2b5a9e; background: #e7eefb; }
+  .scsm-status-cancelled { color: #9e2b2b; background: #fbe9e9; }
   .scsm-detail { flex: 2; min-width: 0; border: 1px solid #d0d7de; border-radius: 8px; overflow-y: auto; background: #fff; }
   .scsm-detail-empty { padding: 1rem; color: #8b949e; }
-  .scsm-detail-content { padding: 1rem; }
-  .scsm-detail-content h3 { margin: 0 0 .4rem; font-size: 1.1rem; }
-  .scsm-detail-content .scsm-url { font-size: .8rem; color: #4a8c6f; word-break: break-all; }
-  .scsm-open { display: inline-block; margin-top: .8rem; padding: .45rem .9rem; background: #006633; color: #fff; border-radius: 6px; text-decoration: none; font-size: .9rem; }
+  .scsm-detail-content { padding: .9rem; display: flex; flex-direction: column; gap: .8rem; }
+  .scsm-detail-box { border: 1px solid #e6e9ec; border-radius: 8px; padding: .8rem; }
+  .scsm-detail-label { color: #8b949e; font-size: .7rem; text-transform: uppercase; letter-spacing: .05em; margin-bottom: .4rem; }
+  .scsm-detail-header { display: flex; align-items: center; gap: .45rem; flex-wrap: wrap; }
+  .scsm-detail-header .scsm-status-badge { margin-left: auto; }
+  .scsm-detail-id { font-size: .95rem; font-weight: 600; }
+  .scsm-detail-title { font-size: 1rem; margin-top: .35rem; }
+  .scsm-open { display: inline-block; margin-top: .6rem; padding: .45rem .9rem; background: #006633; color: #fff; border-radius: 6px; text-decoration: none; font-size: .9rem; }
   .scsm-open:hover { background: #004d26; }
-  .scsm-field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .4rem .8rem; margin-top: .8rem; }
-  .scsm-field-grid dt { color: #8b949e; font-size: .75rem; text-transform: uppercase; }
-  .scsm-field-grid dd { margin: 0; font-size: .9rem; }
+  .scsm-detail-list { margin: 0; }
+  .scsm-detail-list dt { color: #8b949e; font-size: .75rem; text-transform: uppercase; }
+  .scsm-detail-list dd { margin: 0 0 .3rem; font-size: .9rem; }
+  .scsm-detail-list dd:last-child { margin-bottom: 0; }
+  .scsm-detail-work { margin: 0; font-size: .9rem; color: #24292f; line-height: 1.5; white-space: pre-wrap; word-wrap: break-word; }
   .scsm-person { background: none; border: none; color: #006633; cursor: pointer; padding: 0; font-size: .9rem; text-decoration: underline; }
   .scsm-placeholder { padding: .6rem .8rem; color: #8b949e; }
 </style>
@@ -200,10 +213,7 @@
         '<div class="scsm-snippet">' + esc(u.userId) + ' · ' + esc(u.upn) + '</div></button>';
     });
     tickets.forEach(function (t) {
-      html += '<button class="scsm-result" data-ticket-id="' + esc(t.id) + '">' +
-        '<div class="scsm-title"><span class="scsm-type-chip">' + esc((t.ticketType || 'ticket').toUpperCase()) + '</span>' + esc(t.workItemId) + ' · ' + esc(t.title) + '</div>' +
-        '<div class="scsm-url">' + esc(t.scsm_url || '') + '</div>' +
-        '<div class="scsm-snippet">' + esc(snippet(t)) + '</div></button>';
+      html += ticketRowHtml(t);
     });
     if (!html) html = '<div class="scsm-placeholder">No results.</div>';
     resultsEl.innerHTML = html;
@@ -220,33 +230,79 @@
     });
   }
 
-  function snippet(t) {
-    var parts = [];
-    if (t.affectedUser) parts.push('Affected: ' + t.affectedUser.displayName);
-    if (t.createdByUser) parts.push('Created by: ' + t.createdByUser.displayName);
-    parts.push('Status: ' + t.status);
-    if (t.createdDate) parts.push(new Date(t.createdDate).toLocaleDateString());
-    return parts.join(' · ');
+  function typeChip(t) {
+    var type = String(t.ticketType || '').toLowerCase();
+    if (type === 'servicerequest') return '<abbr class="scsm-type-chip scsm-type-sr" title="Service Request">SR</abbr>';
+    if (type === 'incident') return '<abbr class="scsm-type-chip scsm-type-ir" title="Incident">IR</abbr>';
+    return '<span class="scsm-type-chip">' + esc((t.ticketType || 'ticket').toUpperCase()) + '</span>';
+  }
+
+  function statusBadge(status) {
+    var cls = 'scsm-status-badge';
+    var s = String(status || '').toLowerCase();
+    if (s === 'active') cls += ' scsm-status-active';
+    else if (s === 'resolved') cls += ' scsm-status-resolved';
+    else if (s === 'cancelled') cls += ' scsm-status-cancelled';
+    return '<span class="' + cls + '">' + esc(status || '—') + '</span>';
+  }
+
+  function metaHtml(t) {
+    var parts = [statusBadge(t.status)];
+    if (t.affectedUser) parts.push('Affected: ' + esc(t.affectedUser.displayName));
+    if (t.createdByUser) parts.push('Created by: ' + esc(t.createdByUser.displayName));
+    if (t.createdDate) parts.push(esc(new Date(t.createdDate).toLocaleDateString()));
+    return '<div class="scsm-meta">' + parts.join('<span>·</span>') + '</div>';
+  }
+
+  function ticketRowHtml(t) {
+    return '<button class="scsm-result" data-ticket-id="' + esc(t.id) + '">' +
+      '<div class="scsm-title">' + typeChip(t) + '<span class="scsm-title-id">' + esc(t.workItemId) + '</span><span>· ' + esc(t.title) + '</span></div>' +
+      metaHtml(t) + '</button>';
+  }
+
+  function fmtDate(d) {
+    return d ? esc(new Date(d).toLocaleString()) : '—';
   }
 
   function selectTicket(t) {
     detailEmptyEl.hidden = true;
     detailEl.hidden = false;
-    var grid = '';
+
+    var usersDl = '';
     [['affectedUser', 'Affected'], ['createdByUser', 'Created by'], ['assignedUser', 'Assigned to']].forEach(function (p) {
       var person = t[p[0]];
       if (!person) return;
-      grid += '<dt>' + p[1] + '</dt><dd><button class="scsm-person" data-uid="' + esc(person.id) + '" data-name="' + esc(person.displayName) + '">' + esc(person.displayName) + '</button></dd>';
+      usersDl += '<dt>' + p[1] + '</dt><dd><button class="scsm-person" data-uid="' + esc(person.id) + '" data-name="' + esc(person.displayName) + '">' + esc(person.displayName) + '</button></dd>';
     });
-    grid += '<dt>Created</dt><dd>' + esc(t.createdDate ? new Date(t.createdDate).toLocaleString() : '') + '</dd>';
-    grid += '<dt>Status</dt><dd>' + esc(t.status) + '</dd>';
-    grid += '<dt>Priority</dt><dd>' + esc(t.priority == null ? '—' : t.priority) + '</dd>';
+
+    var work = t.description || t.resolutionDescription;
+
     detailEl.innerHTML =
-      '<h3><span class="scsm-type-chip">' + esc((t.ticketType || 'ticket').toUpperCase()) + '</span>' + esc(t.workItemId) + '</h3>' +
-      '<p>' + esc(t.title) + '</p>' +
-      '<div class="scsm-url">' + esc(t.scsm_url || '') + '</div>' +
-      '<dl class="scsm-field-grid">' + grid + '</dl>' +
-      (t.scsm_url ? '<a class="scsm-open" href="' + esc(t.scsm_url) + '" target="_blank" rel="noopener noreferrer">Open in SCSM ↗</a>' : '');
+      '<div class="scsm-detail-box">' +
+        '<div class="scsm-detail-header">' + typeChip(t) +
+          '<span class="scsm-detail-id">' + esc(t.workItemId) + '</span>' +
+          statusBadge(t.status) +
+        '</div>' +
+        '<div class="scsm-detail-title">' + esc(t.title) + '</div>' +
+        (t.scsm_url ? '<a class="scsm-open" href="' + esc(t.scsm_url) + '" target="_blank" rel="noopener noreferrer">Open in SCSM ↗</a>' : '') +
+      '</div>' +
+      '<div class="scsm-detail-box">' +
+        '<div class="scsm-detail-label">Users</div>' +
+        '<dl class="scsm-detail-list">' + (usersDl || '<dd>—</dd>') + '</dl>' +
+      '</div>' +
+      '<div class="scsm-detail-box">' +
+        '<div class="scsm-detail-label">Dates</div>' +
+        '<dl class="scsm-detail-list">' +
+          '<dt>Created</dt><dd>' + fmtDate(t.createdDate) + '</dd>' +
+          '<dt>Resolved</dt><dd>' + fmtDate(t.resolvedDate) + '</dd>' +
+          '<dt>Closed</dt><dd>' + fmtDate(t.closedDate) + '</dd>' +
+        '</dl>' +
+      '</div>' +
+      '<div class="scsm-detail-box">' +
+        '<div class="scsm-detail-label">Work</div>' +
+        '<p class="scsm-detail-work">' + esc(work || '—') + '</p>' +
+      '</div>';
+
     detailEl.querySelectorAll('.scsm-person').forEach(function (btn) {
       btn.addEventListener('click', function () {
         enterPerson({ id: btn.getAttribute('data-uid'), displayName: btn.getAttribute('data-name') }, t);
@@ -317,12 +373,7 @@
   }
 
   function renderRoleResults(rows) {
-    var html = rows.map(function (t) {
-      return '<button class="scsm-result" data-ticket-id="' + esc(t.id) + '">' +
-        '<div class="scsm-title"><span class="scsm-type-chip">' + esc((t.ticketType || 'ticket').toUpperCase()) + '</span>' + esc(t.workItemId) + ' · ' + esc(t.title) + '</div>' +
-        '<div class="scsm-url">' + esc(t.scsm_url || '') + '</div>' +
-        '<div class="scsm-snippet">' + esc(snippet(t)) + '</div></button>';
-    }).join('');
+    var html = rows.map(ticketRowHtml).join('');
     if (!html) html = '<div class="scsm-placeholder">No tickets in this role.</div>';
     resultsEl.innerHTML = html;
     resultsEl.querySelectorAll('[data-ticket-id]').forEach(function (btn) {

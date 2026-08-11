@@ -27,12 +27,28 @@ def test_enrich_rows_uses_row_ticket_type():
     out = engine.enrich_rows(rows)
     assert out[0]["scsm_url"] == "https://support.nwu.ac.za/Incident/Edit/IR1/"
     assert out[0]["title"] == "x"
+    assert out[0]["ticketType"] == "incident"
+
+
+def test_enrich_rows_stamps_request_level_type_when_row_lacks_it():
+    rows = [{"workItemId": "IR1", "title": "x"}]
+    out = engine.enrich_rows(rows, ticket_type="incident")
+    assert out[0]["ticketType"] == "incident"
+    assert out[0]["scsm_url"] == "https://support.nwu.ac.za/Incident/Edit/IR1/"
+
+
+def test_enrich_rows_row_type_wins_over_request_level():
+    rows = [{"workItemId": "IR1", "ticketType": "incident"}]
+    out = engine.enrich_rows(rows, ticket_type="servicerequest")
+    assert out[0]["ticketType"] == "incident"
+    assert out[0]["scsm_url"] == "https://support.nwu.ac.za/Incident/Edit/IR1/"
 
 
 def test_enrich_rows_defaults_to_request_level_type():
     rows = [{"workItemId": "SR2", "title": "y"}]
     out = engine.enrich_rows(rows, ticket_type="servicerequest")
     assert out[0]["scsm_url"] == "https://support.nwu.ac.za/ServiceRequest/Edit/SR2/"
+    assert out[0]["ticketType"] == "servicerequest"
 
 
 def test_enrich_rows_unknown_type_leaves_none_url():
@@ -111,6 +127,7 @@ def test_search_tickets_forwards_params_and_header(monkeypatch, api_key):
         captured.update({"method": method, "url": url, "params": kwargs.get("params"), "headers": kwargs.get("headers")})
         return FakeResp(200, {"results": [], "total": 0})
 
+    monkeypatch.setattr(engine, "SCSM_API_URL", "http://scsm-search:3000")
     monkeypatch.setattr(engine.requests, "request", fake_request)
     engine.search_tickets("printer", ticket_type="incident", status="Active")
     assert captured["method"] == "GET"

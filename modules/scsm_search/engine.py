@@ -55,7 +55,9 @@ def enrich_rows(rows, ticket_type=None):
     enriched = []
     for row in rows or []:
         out = dict(row)
-        kind = ticket_type or out.get("ticketType")
+        if not out.get("ticketType") and ticket_type:
+            out["ticketType"] = ticket_type
+        kind = out.get("ticketType")
         out["scsm_url"] = build_scsm_url(out.get("workItemId"), kind)
         enriched.append(out)
     return enriched
