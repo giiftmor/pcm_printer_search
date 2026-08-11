@@ -11,6 +11,7 @@
 - 2026-08-04: Extension popup crash (`PCM_URL_HELPERS is not defined`) — `bin/build-extension.sh` `EXT_FILES` now includes `url_helpers.js`, so the Nextcloud `pcm-compass/` per-file folder ships it; regression guarded by `tests/build_extension.test.js`
 
 ### Changed
+- 2026-08-11: Deployment wiring — Compass `web` container joins the external `ai-stack_ai_net` Docker network so it reaches the SCSM search service by name (`http://scsm-search:8080`); scsm-search serves on port 8080 (PORT in its `.env`, compose healthcheck now `${PORT}`-aware); Compass `.env` carries `SCSM_API_URL`/`SCSM_API_KEY`/`SCSM_PORTAL_BASE`. Repo defaults stay on port 3000 until a permanent port is chosen.
 - 2026-08-04: Grouper group presets now store full subject-summary URLs (with UUIDs) instead of name stems — preset shape is `{id, label, url}`; removed free-text group lookup, `build_grouper_group_url`/`buildGrouperGroupURL` builders, and `GET /api/user-lookup/group-url` endpoint (extension v2.3.2)
 - 2026-08-04: Extension "Open App" button moved from the printer row to the popup footer; dead ⚙ settings gear now toggles an inline App URL panel (save/reset via `chrome.storage.local`)
 

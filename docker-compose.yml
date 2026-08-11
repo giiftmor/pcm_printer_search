@@ -17,3 +17,9 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
+    networks:
+      - ai-stack_ai_net
+
+networks:
+  ai-stack_ai_net:
+    external: true
