@@ -1,6 +1,7 @@
 import pytest
 
 from modules.scsm_search import engine
+from modules.scsm_search.routes import _apply_sort
 
 A = {"id": "A", "displayName": "Alice"}
 B = {"id": "B", "displayName": "Bob"}
@@ -269,3 +270,49 @@ def test_cache_warm_failure_releases_and_does_not_cache():
     cache.warm("GUID", "affected", fetch_page)
     assert cache.get("GUID", "affected") is None
     assert cache.is_fetching("GUID", "affected") is False
+
+
+def test_apply_sort_az_sorts_by_title_ascending():
+    items = [
+        {"title": "Zebra", "createdDate": "2026-08-01T09:00:00Z"},
+        {"title": "Apple", "createdDate": "2026-07-01T09:00:00Z"},
+    ]
+    _apply_sort(items, "az")
+    assert [r["title"] for r in items] == ["Apple", "Zebra"]
+
+
+def test_apply_sort_az_is_case_insensitive():
+    items = [
+        {"title": "Zebra", "createdDate": "2026-08-01T09:00:00Z"},
+        {"title": "apple", "createdDate": "2026-07-01T09:00:00Z"},
+    ]
+    _apply_sort(items, "az")
+    assert [r["title"] for r in items] == ["apple", "Zebra"]
+
+
+def test_apply_sort_relevance_ascending_with_missing_last():
+    items = [
+        {"title": "no-rel", "createdDate": "2026-09-01T09:00:00Z"},
+        {"title": "high", "relevance": 10000, "createdDate": "2026-08-01T09:00:00Z"},
+        {"title": "mid", "relevance": 5000, "createdDate": "2026-07-01T09:00:00Z"},
+        {"title": "low", "relevance": 0, "createdDate": "2026-06-01T09:00:00Z"},
+    ]
+    _apply_sort(items, "relevance")
+    assert [r["title"] for r in items] == ["low", "mid", "high", "no-rel"]
+
+
+def test_apply_sort_defaults_to_newest_first():
+    items = [
+        {"title": "old", "createdDate": "2026-06-01T09:00:00Z"},
+        {"title": "new", "createdDate": "2026-08-01T09:00:00Z"},
+        {"title": "mid", "createdDate": "2026-07-01T09:00:00Z"},
+    ]
+    _apply_sort(items, "newest")
+    assert [r["title"] for r in items] == ["new", "mid", "old"]
+    items2 = [
+        {"title": "old", "createdDate": "2026-06-01T09:00:00Z"},
+        {"title": "new", "createdDate": "2026-08-01T09:00:00Z"},
+        {"title": "mid", "createdDate": "2026-07-01T09:00:00Z"},
+    ]
+    _apply_sort(items2, None)
+    assert [r["title"] for r in items2] == ["new", "mid", "old"]
