@@ -90,7 +90,10 @@ def search_tickets(q, ticket_type=None, page=1, page_size=25, **filters):
     params = {"q": q, "page": page, "pageSize": page_size}
     if ticket_type:
         params["type"] = ticket_type
-    for key in ("status", "priority", "affectedUserId", "createdByUserId", "assignedUserId", "from", "to"):
+    for key in (
+        "status", "priority", "affectedUserId", "createdByUserId", "assignedUserId",
+        "from", "to", "tier", "location", "sort",
+    ):
         if filters.get(key) is not None:
             params[key] = filters[key]
     return _request("GET", "/v1/search/tickets", params=params)

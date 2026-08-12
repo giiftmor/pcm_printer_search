@@ -70,6 +70,82 @@ def test_tickets_merges_sorts_and_enriches(client, monkeypatch):
     assert data["results"][1]["ticketType"] == "incident"
 
 
+def test_tickets_forwards_tier_location_sort(client, monkeypatch):
+    calls = []
+
+    def fake_request(method, url, **kwargs):
+        calls.append(kwargs.get("params"))
+        return FakeResp(200, {"results": [], "total": 0})
+
+    monkeypatch.setattr(engine.requests, "request", fake_request)
+    resp = client.post(
+        "/api/scsm/tickets",
+        json={"q": "x", "tier": "T", "location": "A21", "sort": "az"},
+    )
+    assert resp.status_code == 200
+    assert [p.get("tier") for p in calls] == ["T", "T"]
+    assert [p.get("location") for p in calls] == ["A21", "A21"]
+    assert [p.get("sort") for p in calls] == ["az", "az"]
+
+
+def test_tickets_az_sorts_by_title(client, monkeypatch):
+    incident = {
+        "results": [{
+            "id": "a", "workItemId": "IR1", "title": "Zulu printer", "status": "Active",
+            "priority": "2", "createdDate": "2026-07-01T09:00:00Z",
+            "affectedUser": None, "createdByUser": None, "assignedUser": None,
+        }],
+        "total": 1,
+    }
+    servicerequest = {
+        "results": [{
+            "id": "b", "workItemId": "SR2", "title": "Alpha pc", "status": "Active",
+            "priority": "3", "createdDate": "2026-08-01T09:00:00Z",
+            "affectedUser": None, "createdByUser": None, "assignedUser": None,
+        }],
+        "total": 1,
+    }
+    calls = {"n": 0}
+
+    def fake_request(method, url, **kwargs):
+        calls["n"] += 1
+        return FakeResp(200, incident if calls["n"] == 1 else servicerequest)
+
+    monkeypatch.setattr(engine.requests, "request", fake_request)
+    resp = client.post("/api/scsm/tickets", json={"q": "pc", "sort": "az"})
+    assert resp.status_code == 200
+    assert [r["workItemId"] for r in resp.get_json()["results"]] == ["SR2", "IR1"]
+
+
+def test_tickets_relevance_sorts_by_relevance_then_newest(client, monkeypatch):
+    incident = {
+        "results": [{
+            "id": "a", "workItemId": "IR1", "title": "printer jam", "status": "Active",
+            "priority": "2", "createdDate": "2026-07-01T09:00:00Z", "relevance": 0,
+            "affectedUser": None, "createdByUser": None, "assignedUser": None,
+        }],
+        "total": 1,
+    }
+    servicerequest = {
+        "results": [{
+            "id": "b", "workItemId": "SR2", "title": "jam printer", "status": "Active",
+            "priority": "3", "createdDate": "2026-08-01T09:00:00Z", "relevance": 10000,
+            "affectedUser": None, "createdByUser": None, "assignedUser": None,
+        }],
+        "total": 1,
+    }
+    calls = {"n": 0}
+
+    def fake_request(method, url, **kwargs):
+        calls["n"] += 1
+        return FakeResp(200, incident if calls["n"] == 1 else servicerequest)
+
+    monkeypatch.setattr(engine.requests, "request", fake_request)
+    resp = client.post("/api/scsm/tickets", json={"q": "printer jam", "sort": "relevance"})
+    assert resp.status_code == 200
+    assert [r["workItemId"] for r in resp.get_json()["results"]] == ["IR1", "SR2"]
+
+
 def test_tickets_not_configured_returns_503(client, monkeypatch):
     monkeypatch.setattr(engine, "SCSM_API_KEY", "")
     resp = client.post("/api/scsm/tickets", json={"q": "x"})

@@ -26,6 +26,22 @@ def _spawn_warm(user_id, role):
     ).start()
 
 
+_BIG = 10 ** 9
+
+
+def _relevance(row):
+    rel = row.get("relevance")
+    return rel if isinstance(rel, (int, float)) else _BIG
+
+
+def _apply_sort(merged, sort):
+    merged.sort(key=lambda r: r.get("createdDate") or "", reverse=True)
+    if sort == "az":
+        merged.sort(key=lambda r: (r.get("title") or "").lower())
+    elif sort == "relevance":
+        merged.sort(key=_relevance)
+
+
 @bp.post("/tickets")
 @_scsm_route
 def tickets():
@@ -34,7 +50,7 @@ def tickets():
     if not q:
         return {"error": {"code": "BAD_REQUEST", "message": "q is required"}}, 400
     filters = {}
-    for key in ("status", "priority", "from", "to"):
+    for key in ("status", "priority", "from", "to", "tier", "location", "sort"):
         if body.get(key) is not None:
             filters[key] = body[key]
     merged = []
@@ -43,7 +59,7 @@ def tickets():
         data = engine.search_tickets(q, ticket_type=ticket_type, page_size=25, **filters)
         merged.extend(engine.enrich_rows(data.get("results") or [], ticket_type=ticket_type))
         total += data.get("total") or 0
-    merged.sort(key=lambda r: r.get("createdDate") or "", reverse=True)
+    _apply_sort(merged, filters.get("sort"))
     return {"results": merged, "total": total, "page": 1}
 
 

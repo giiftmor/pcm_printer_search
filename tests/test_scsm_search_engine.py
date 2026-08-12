@@ -138,6 +138,27 @@ def test_search_tickets_forwards_params_and_header(monkeypatch, api_key):
     assert captured["headers"]["X-API-Key"] == "test-key"
 
 
+def test_search_tickets_forwards_tier_location_sort(monkeypatch, api_key):
+    captured = {}
+
+    def fake_request(method, url, **kwargs):
+        captured["params"] = kwargs.get("params")
+        return FakeResp(200, {"results": [], "total": 0})
+
+    monkeypatch.setattr(engine, "SCSM_API_URL", "http://scsm-search:3000")
+    monkeypatch.setattr(engine.requests, "request", fake_request)
+    engine.search_tickets(
+        "printer",
+        ticket_type="incident",
+        tier="Potch Staff Service Desk",
+        location="A21",
+        sort="az",
+    )
+    assert captured["params"]["tier"] == "Potch Staff Service Desk"
+    assert captured["params"]["location"] == "A21"
+    assert captured["params"]["sort"] == "az"
+
+
 def test_search_users_forwards_q(monkeypatch, api_key):
     captured = {}
 
