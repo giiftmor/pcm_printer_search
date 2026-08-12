@@ -25,6 +25,7 @@
         <button type="button" data-sort="az">A&ndash;Z</button>
       </span>
     </div>
+    <div id="scsm-count" class="scsm-count" hidden></div>
     <div id="scsm-tabs" class="scsm-tabs" hidden></div>
     <div id="scsm-status-msg" class="scsm-status" hidden></div>
     <div id="scsm-results" class="scsm-results" aria-live="polite"></div>
@@ -54,6 +55,7 @@
   .scsm-sort button.active { background: #006633; color: #fff; }
   .scsm-results { flex: 1; overflow-y: auto; padding: .25rem 0; background: #fff; border: 1px solid #d0d7de; border-top: none; }
   .scsm-status { padding: .4rem .8rem; font-size: .8rem; color: #57606a; }
+  #scsm-count { padding: .4rem .8rem 0; font-size: .8rem; color: #57606a; }
   .scsm-result { display: block; width: 100%; text-align: left; padding: .9rem .9rem; border: none; background: none; border-bottom: 1px solid #f0f2f5; cursor: pointer; border-radius: 8px;}
   .scsm-result:hover { background: #f6f8fa; }
   .scsm-title { font-size: .95rem; color: #24292f; display: flex; align-items: center; gap: .45rem; flex-wrap: wrap; }
@@ -108,6 +110,7 @@
   var queryEl = document.getElementById('scsm-query');
   var tabsEl = document.getElementById('scsm-tabs');
   var statusEl = document.getElementById('scsm-status-msg');
+  var countEl = document.getElementById('scsm-count');
   var resultsEl = document.getElementById('scsm-results');
   var filtersEl = document.getElementById('scsm-filters');
   var tierEl = document.getElementById('scsm-tier');
@@ -139,6 +142,11 @@
   function setStatus(text) {
     statusEl.hidden = !text;
     statusEl.textContent = text || '';
+  }
+
+  function setCount(n) {
+    countEl.hidden = !n;
+    countEl.textContent = n === 1 ? '1 result' : n + ' results';
   }
 
   function clearList() {
@@ -246,6 +254,7 @@
       if (q.length < 2) {
         clearList();
         setStatus('');
+        setCount(0);
         detailEmptyEl.hidden = false;
         detailEl.hidden = true;
         return;
@@ -304,6 +313,7 @@
     ]).then(function (rs) {
       if (!rs[0].ok || !rs[1].ok) {
         setStatus('Search failed — is the SCSM API configured?');
+        setCount(0);
         return;
       }
       return Promise.all(rs.map(function (r) { return r.json(); }));
@@ -315,6 +325,7 @@
       renderResults(state.lastSearchData.tickets, state.lastSearchData.users);
     }).catch(function () {
       setStatus('Search failed — is the SCSM API configured?');
+      setCount(0);
     });
   }
 
@@ -330,6 +341,7 @@
     });
     if (!html) html = '<div class="scsm-placeholder">No results.</div>';
     resultsEl.innerHTML = html;
+    setCount(users.length + tickets.length);
 
     resultsEl.querySelectorAll('[data-user-id]').forEach(function (btn) {
       btn.addEventListener('click', function () {
@@ -489,6 +501,7 @@
     var html = rows.map(ticketRowHtml).join('');
     if (!html) html = '<div class="scsm-placeholder">No tickets in this role.</div>';
     resultsEl.innerHTML = html;
+    setCount(rows.length);
     resultsEl.querySelectorAll('[data-ticket-id]').forEach(function (btn) {
       var id = btn.getAttribute('data-ticket-id');
       var t = rows.filter(function (x) { return x.id === id; })[0];

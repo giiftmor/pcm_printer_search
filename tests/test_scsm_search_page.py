@@ -28,3 +28,11 @@ def test_scsm_search_page_has_filter_bar():
     assert b"scsm-status" in resp.data
     assert b"scsm-location" in resp.data
     assert b"scsm-status-msg" in resp.data
+
+
+def test_scsm_search_page_has_counter_line():
+    app = Flask(__name__, template_folder=os.path.join(ROOT, "templates"))
+    app.config["TESTING"] = True
+    app.register_blueprint(pages_bp)
+    resp = app.test_client().get("/scsm-search")
+    assert b'id="scsm-count"' in resp.data
