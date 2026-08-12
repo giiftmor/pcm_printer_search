@@ -958,7 +958,7 @@ def _apply_sort(merged, sort):
     merged.sort(key=lambda r: r.get("createdDate") or "", reverse=True)
     if sort == "az":
         merged.sort(key=lambda r: (r.get("title") or "").lower())
-    elif sort == "relevance":
+    elif sort in (None, "relevance"):
         merged.sort(key=_relevance)
 ```
 
@@ -978,7 +978,9 @@ In `tickets()`: extend the filter loop and replace the final sort:
 - [ ] **Step 4: Run tests to verify they pass**
 
 Run: `python3 -m pytest -p no:cacheprovider -q tests/test_scsm_search_engine.py tests/test_scsm_search_routes.py`
-Expected: PASS. (The existing `test_tickets_merges_sorts_and_enriches` still passes — default sort = newest.)
+Expected: PASS. (The existing `test_tickets_merges_sorts_and_enriches` still passes — with the default `relevance` sort, fixture rows carry no `relevance` field, so `_relevance` returns `_BIG` for all rows and the stable sort preserves the newest-first tie-break.)
+
+> **Plan correction (final review):** Tasks 1/5 and line 18 declare `relevance` the default `sort`, and the page's Relevance button is `active` by default, but `getFiltersPayload` (Task 10) omits `sort` when it equals `relevance`. Treating a missing sort as `newest` here would make the Relevance button a no-op and relevance ranking never reach the page. Hence `_apply_sort` treats `None` (missing) the same as `"relevance"` — consistent with the API's default.
 
 - [ ] **Step 5: Commit**
 
