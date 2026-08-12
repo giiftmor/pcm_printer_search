@@ -18,6 +18,12 @@ def _scsm_route(fn):
     return wrapper
 
 
+@bp.get("/meta/filters")
+@_scsm_route
+def meta_filters():
+    return engine.fetch_filters()
+
+
 def _spawn_warm(user_id, role):
     threading.Thread(
         target=engine.related_cache.warm,

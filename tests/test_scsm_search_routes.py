@@ -19,6 +19,7 @@ class FakeResp:
 def client(monkeypatch):
     monkeypatch.setattr(engine, "SCSM_API_KEY", "test-key")
     monkeypatch.setattr(engine, "related_cache", engine.RelatedTicketsCache())
+    monkeypatch.setattr(engine, "filters_cache", engine.FiltersCache())
     monkeypatch.setattr(
         engine,
         "fetch_user_tickets_page",
@@ -224,3 +225,13 @@ def test_related_returns_deduped_tabs_and_kicks_fetch(client, monkeypatch):
         "scsm_url": "https://support.nwu.ac.za/Incident/Edit/IR1/",
     }
     assert spawned == [("B", "assigned")]
+
+
+def test_meta_filters_proxies(client, monkeypatch):
+    def fake_request(method, url, **kwargs):
+        return FakeResp(200, {"tiers": ["T1"], "statuses": ["Closed"]})
+
+    monkeypatch.setattr(engine.requests, "request", fake_request)
+    resp = client.get("/api/scsm/meta/filters")
+    assert resp.status_code == 200
+    assert resp.get_json() == {"tiers": ["T1"], "statuses": ["Closed"]}

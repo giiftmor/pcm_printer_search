@@ -316,3 +316,20 @@ def test_apply_sort_defaults_to_newest_first():
     ]
     _apply_sort(items2, None)
     assert [r["title"] for r in items2] == ["new", "mid", "old"]
+
+
+def test_fetch_filters_proxies_and_caches(monkeypatch, api_key):
+    calls = {"n": 0}
+
+    def fake_request(method, url, **kwargs):
+        calls["n"] += 1
+        assert url.endswith("/v1/meta/filters")
+        return FakeResp(200, {"tiers": ["T1", "T2"], "statuses": ["Closed"]})
+
+    monkeypatch.setattr(engine, "filters_cache", engine.FiltersCache())
+    monkeypatch.setattr(engine.requests, "request", fake_request)
+    first = engine.fetch_filters()
+    second = engine.fetch_filters()
+    assert first == {"tiers": ["T1", "T2"], "statuses": ["Closed"]}
+    assert second == first
+    assert calls["n"] == 1

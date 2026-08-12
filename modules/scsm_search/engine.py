@@ -200,3 +200,34 @@ class RelatedTicketsCache:
 
 
 related_cache = RelatedTicketsCache()
+
+META_FILTERS_TTL_SECONDS = 60 * 60
+
+
+class FiltersCache:
+    def __init__(self, ttl_seconds=None, clock=None):
+        self._ttl = ttl_seconds if ttl_seconds is not None else META_FILTERS_TTL_SECONDS
+        self._clock = clock or time.monotonic
+        self._data = None
+        self._loaded_at = None
+
+    def get(self):
+        if self._data is not None and self._clock() - self._loaded_at < self._ttl:
+            return self._data
+        return None
+
+    def set(self, data):
+        self._data = data
+        self._loaded_at = self._clock()
+
+
+filters_cache = FiltersCache()
+
+
+def fetch_filters():
+    cached = filters_cache.get()
+    if cached is not None:
+        return cached
+    data = _request("GET", "/v1/meta/filters")
+    filters_cache.set(data)
+    return data
