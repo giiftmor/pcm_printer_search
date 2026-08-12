@@ -13,8 +13,20 @@
              autocomplete="off" spellcheck="false" aria-label="Search SCSM">
       <kbd class="scsm-kbd">Ctrl&nbsp;K</kbd>
     </div>
+    <div id="scsm-filters" class="scsm-filters">
+      <select id="scsm-tier" aria-label="Tier / Queue"><option value="">All tiers</option></select>
+      <select id="scsm-status" aria-label="Status"><option value="">All statuses</option></select>
+      <input id="scsm-location" type="text" placeholder="Location contains…" autocomplete="off" aria-label="Location">
+      <input id="scsm-from" type="date" aria-label="Created from">
+      <input id="scsm-to" type="date" aria-label="Created to">
+      <span class="scsm-sort" role="group" aria-label="Sort results">
+        <button type="button" data-sort="relevance" class="active">Relevance</button>
+        <button type="button" data-sort="newest">Newest</button>
+        <button type="button" data-sort="az">A&ndash;Z</button>
+      </span>
+    </div>
     <div id="scsm-tabs" class="scsm-tabs" hidden></div>
-    <div id="scsm-status" class="scsm-status" hidden></div>
+    <div id="scsm-status-msg" class="scsm-status" hidden></div>
     <div id="scsm-results" class="scsm-results" aria-live="polite"></div>
   </section>
 
@@ -35,6 +47,11 @@
   .scsm-tab { background: none; border: none; border-bottom: 2px solid transparent; padding: .4rem .6rem; cursor: pointer; color: #57606a; font-size: .85rem; }
   .scsm-tab.active { border-bottom-color: #006633; color: #006633; font-weight: 600; }
   .scsm-tab .scsm-count { color: #8b949e; margin-left: .25rem; }
+  .scsm-filters { display: flex; flex-wrap: wrap; gap: .5rem; padding: .6rem .8rem 0; align-items: center; }
+  .scsm-filters select, .scsm-filters input[type="text"], .scsm-filters input[type="date"] { padding: .35rem .5rem; font-size: .82rem; border: 1px solid #d0d7de; border-radius: 6px; background: #fff; color: #24292f; }
+  .scsm-sort { display: inline-flex; border: 1px solid #d0d7de; border-radius: 6px; overflow: hidden; }
+  .scsm-sort button { border: none; background: #fff; padding: .35rem .6rem; font-size: .82rem; cursor: pointer; color: #57606a; }
+  .scsm-sort button.active { background: #006633; color: #fff; }
   .scsm-results { flex: 1; overflow-y: auto; padding: .25rem 0; background: #fff; border: 1px solid #d0d7de; border-top: none; }
   .scsm-status { padding: .4rem .8rem; font-size: .8rem; color: #57606a; }
   .scsm-result { display: block; width: 100%; text-align: left; padding: .9rem .9rem; border: none; background: none; border-bottom: 1px solid #f0f2f5; cursor: pointer; border-radius: 8px;}
@@ -90,8 +107,14 @@
   'use strict';
   var queryEl = document.getElementById('scsm-query');
   var tabsEl = document.getElementById('scsm-tabs');
-  var statusEl = document.getElementById('scsm-status');
+  var statusEl = document.getElementById('scsm-status-msg');
   var resultsEl = document.getElementById('scsm-results');
+  var filtersEl = document.getElementById('scsm-filters');
+  var tierEl = document.getElementById('scsm-tier');
+  var statusFilterEl = document.getElementById('scsm-status');
+  var locationEl = document.getElementById('scsm-location');
+  var fromEl = document.getElementById('scsm-from');
+  var toEl = document.getElementById('scsm-to');
   var detailEmptyEl = document.getElementById('scsm-detail-empty');
   var detailEl = document.getElementById('scsm-detail');
 
@@ -104,6 +127,7 @@
     pollTimer: null,
     lastSearch: null,
     lastSearchData: null,
+    filters: { tier: '', status: '', location: '', from: '', to: '', sort: 'relevance' },
   };
 
   function esc(s) {
@@ -136,6 +160,63 @@
     for (var i = 0; i < count; i++) html += row;
     resultsEl.innerHTML = html;
   }
+
+  function getFiltersPayload() {
+    var f = state.filters;
+    var out = {};
+    if (f.tier) out.tier = f.tier;
+    if (f.status) out.status = f.status;
+    if (f.location.trim()) out.location = f.location.trim();
+    if (f.from) out.from = f.from;
+    if (f.to) out.to = f.to;
+    if (f.sort !== 'relevance') out.sort = f.sort;
+    return out;
+  }
+
+  function loadFilterMeta() {
+    fetch('/api/scsm/meta/filters').then(function (r) {
+      if (!r.ok) throw new Error('meta');
+      return r.json();
+    }).then(function (data) {
+      [['tiers', tierEl], ['statuses', statusFilterEl]].forEach(function (pair) {
+        var list = data[pair[0]] || [];
+        list.forEach(function (v) {
+          var o = document.createElement('option');
+          o.value = v;
+          o.textContent = v;
+          pair[1].appendChild(o);
+        });
+        pair[1].hidden = !list.length;
+      });
+    }).catch(function () {
+      tierEl.hidden = true;
+      statusFilterEl.hidden = true;
+    });
+  }
+
+  function syncFiltersState() {
+    state.filters.tier = tierEl.value;
+    state.filters.status = statusFilterEl.value;
+    state.filters.location = locationEl.value;
+    state.filters.from = fromEl.value;
+    state.filters.to = toEl.value;
+  }
+
+  [tierEl, statusFilterEl, locationEl, fromEl, toEl].forEach(function (el) {
+    el.addEventListener('input', function () {
+      syncFiltersState();
+      if (state.query.length >= 2) doSearch(state.query);
+    });
+  });
+
+  document.querySelectorAll('.scsm-sort button').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('.scsm-sort button').forEach(function (b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      state.filters.sort = btn.getAttribute('data-sort');
+      if (state.query.length >= 2) doSearch(state.query);
+    });
+  });
 
   function exitPerson() {
     if (state.pollTimer) { clearTimeout(state.pollTimer); state.pollTimer = null; }
@@ -194,6 +275,8 @@
     });
   }
 
+  loadFilterMeta();
+
   function onTabClick(role) {
     if (state.pollTimer) { clearTimeout(state.pollTimer); state.pollTimer = null; }
     if (role === 'all') {
@@ -216,7 +299,7 @@
     renderSkeletons(5);
     state.lastSearch = q;
     Promise.all([
-      fetch('/api/scsm/tickets', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q: q }) }),
+      fetch('/api/scsm/tickets', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(Object.assign({ q: q }, getFiltersPayload())) }),
       fetch('/api/scsm/users', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q: q }) }),
     ]).then(function (rs) {
       if (!rs[0].ok || !rs[1].ok) {
