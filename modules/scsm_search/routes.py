@@ -44,7 +44,7 @@ def _apply_sort(merged, sort):
     merged.sort(key=lambda r: r.get("createdDate") or "", reverse=True)
     if sort == "az":
         merged.sort(key=lambda r: (r.get("title") or "").lower())
-    elif sort == "relevance":
+    elif sort in (None, "relevance"):
         merged.sort(key=_relevance)
 
 

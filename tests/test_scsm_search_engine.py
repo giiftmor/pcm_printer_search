@@ -301,21 +301,22 @@ def test_apply_sort_relevance_ascending_with_missing_last():
     assert [r["title"] for r in items] == ["low", "mid", "high", "no-rel"]
 
 
-def test_apply_sort_defaults_to_newest_first():
+def test_apply_sort_missing_sort_defaults_to_relevance():
     items = [
-        {"title": "old", "createdDate": "2026-06-01T09:00:00Z"},
-        {"title": "new", "createdDate": "2026-08-01T09:00:00Z"},
-        {"title": "mid", "createdDate": "2026-07-01T09:00:00Z"},
+        {"title": "old", "createdDate": "2026-06-01T09:00:00Z", "relevance": 0},
+        {"title": "new", "createdDate": "2026-08-01T09:00:00Z", "relevance": 10000},
+    ]
+    _apply_sort(items, None)
+    assert [r["title"] for r in items] == ["old", "new"]
+
+
+def test_apply_sort_explicit_newest_first_regardless_of_relevance():
+    items = [
+        {"title": "old", "createdDate": "2026-06-01T09:00:00Z", "relevance": 0},
+        {"title": "new", "createdDate": "2026-08-01T09:00:00Z", "relevance": 10000},
     ]
     _apply_sort(items, "newest")
-    assert [r["title"] for r in items] == ["new", "mid", "old"]
-    items2 = [
-        {"title": "old", "createdDate": "2026-06-01T09:00:00Z"},
-        {"title": "new", "createdDate": "2026-08-01T09:00:00Z"},
-        {"title": "mid", "createdDate": "2026-07-01T09:00:00Z"},
-    ]
-    _apply_sort(items2, None)
-    assert [r["title"] for r in items2] == ["new", "mid", "old"]
+    assert [r["title"] for r in items] == ["new", "old"]
 
 
 def test_fetch_filters_proxies_and_caches(monkeypatch, api_key):
