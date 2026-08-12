@@ -130,6 +130,7 @@
     pollTimer: null,
     lastSearch: null,
     lastSearchData: null,
+    skeletons: false,
     filters: { tier: '', status: '', location: '', from: '', to: '', sort: 'relevance' },
   };
 
@@ -153,21 +154,35 @@
     resultsEl.innerHTML = '';
   }
 
-  function renderSkeletons(count) {
-    var row =
-      '<div class="scsm-skeleton" aria-hidden="true">' +
-        '<div class="scsm-skeleton-bar scsm-skeleton-chip"></div>' +
-        '<div class="scsm-skeleton-bar scsm-skeleton-title"></div>' +
-        '<div class="scsm-skeleton-meta">' +
-          '<div class="scsm-skeleton-bar scsm-skeleton-badge"></div>' +
-          '<div class="scsm-skeleton-bar scsm-skeleton-text"></div>' +
-          '<div class="scsm-skeleton-bar scsm-skeleton-text short"></div>' +
-        '</div>' +
-      '</div>';
+  var SKELETON_ROW =
+    '<div class="scsm-skeleton" aria-hidden="true">' +
+      '<div class="scsm-skeleton-bar scsm-skeleton-chip"></div>' +
+      '<div class="scsm-skeleton-bar scsm-skeleton-title"></div>' +
+      '<div class="scsm-skeleton-meta">' +
+        '<div class="scsm-skeleton-bar scsm-skeleton-badge"></div>' +
+        '<div class="scsm-skeleton-bar scsm-skeleton-text"></div>' +
+        '<div class="scsm-skeleton-bar scsm-skeleton-text short"></div>' +
+      '</div>' +
+    '</div>';
+
+  function renderSkeletons() {
+    resultsEl.innerHTML = SKELETON_ROW;
+    var probe = resultsEl.firstChild;
+    var rowH = probe && probe.offsetHeight ? probe.offsetHeight : 68;
+    var count = Math.max(4, Math.min(40, Math.ceil(resultsEl.clientHeight / rowH)));
     var html = '';
-    for (var i = 0; i < count; i++) html += row;
+    for (var i = 0; i < count; i++) html += SKELETON_ROW;
     resultsEl.innerHTML = html;
+    state.skeletons = true;
   }
+
+  var skeletonResizeTimer = null;
+  window.addEventListener('resize', function () {
+    clearTimeout(skeletonResizeTimer);
+    skeletonResizeTimer = setTimeout(function () {
+      if (state.skeletons) renderSkeletons();
+    }, 150);
+  });
 
   function getFiltersPayload() {
     var f = state.filters;
@@ -253,6 +268,7 @@
       state.query = q;
       if (q.length < 2) {
         clearList();
+        state.skeletons = false;
         setStatus('');
         setCount(0);
         detailEmptyEl.hidden = false;
@@ -305,13 +321,14 @@
   function doSearch(q) {
     setStatus('');
     clearList();
-    renderSkeletons(5);
+    renderSkeletons();
     state.lastSearch = q;
     Promise.all([
       fetch('/api/scsm/tickets', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(Object.assign({ q: q }, getFiltersPayload())) }),
       fetch('/api/scsm/users', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q: q }) }),
     ]).then(function (rs) {
       if (!rs[0].ok || !rs[1].ok) {
+        state.skeletons = false;
         setStatus('Search failed — is the SCSM API configured?');
         setCount(0);
         return;
@@ -324,6 +341,7 @@
       renderTabs([], data[0].total);
       renderResults(state.lastSearchData.tickets, state.lastSearchData.users);
     }).catch(function () {
+      state.skeletons = false;
       setStatus('Search failed — is the SCSM API configured?');
       setCount(0);
     });
@@ -340,6 +358,7 @@
       html += ticketRowHtml(t);
     });
     if (!html) html = '<div class="scsm-placeholder">No results.</div>';
+    state.skeletons = false;
     resultsEl.innerHTML = html;
     setCount(users.length + tickets.length);
 
@@ -486,7 +505,7 @@
       } else {
         updateTabCount(role, null);
         setStatus('');
-        renderSkeletons(3);
+        renderSkeletons();
         state.pollTimer = setTimeout(function () { loadRoleTickets(role); }, 2000);
       }
     }).catch(function () { setStatus('Related tickets unavailable — SCSM API error.'); });
@@ -500,6 +519,7 @@
   function renderRoleResults(rows) {
     var html = rows.map(ticketRowHtml).join('');
     if (!html) html = '<div class="scsm-placeholder">No tickets in this role.</div>';
+    state.skeletons = false;
     resultsEl.innerHTML = html;
     setCount(rows.length);
     resultsEl.querySelectorAll('[data-ticket-id]').forEach(function (btn) {
