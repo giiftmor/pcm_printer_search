@@ -131,6 +131,7 @@
     lastSearch: null,
     lastSearchData: null,
     skeletons: false,
+    reqSeq: 0,
     filters: { tier: '', status: '', location: '', from: '', to: '', sort: 'relevance' },
   };
 
@@ -323,27 +324,32 @@
     clearList();
     renderSkeletons();
     state.lastSearch = q;
+    var seq = ++state.reqSeq;
     Promise.all([
       fetch('/api/scsm/tickets', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(Object.assign({ q: q }, getFiltersPayload())) }),
       fetch('/api/scsm/users', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q: q }) }),
     ]).then(function (rs) {
       if (!rs[0].ok || !rs[1].ok) {
-        state.skeletons = false;
-        setStatus('Search failed — is the SCSM API configured?');
-        setCount(0);
+        if (seq === state.reqSeq) {
+          state.skeletons = false;
+          setStatus('Search failed — is the SCSM API configured?');
+          setCount(0);
+        }
         return;
       }
       return Promise.all(rs.map(function (r) { return r.json(); }));
     }).then(function (data) {
-      if (!data || state.query !== q) return;
+      if (!data || state.query !== q || seq !== state.reqSeq) return;
       state.lastSearchData = { tickets: data[0].results || [], users: data[1].results || [] };
       setStatus('');
       renderTabs([], data[0].total);
       renderResults(state.lastSearchData.tickets, state.lastSearchData.users);
     }).catch(function () {
-      state.skeletons = false;
-      setStatus('Search failed — is the SCSM API configured?');
-      setCount(0);
+      if (seq === state.reqSeq) {
+        state.skeletons = false;
+        setStatus('Search failed — is the SCSM API configured?');
+        setCount(0);
+      }
     });
   }
 
@@ -508,7 +514,7 @@
         renderSkeletons();
         state.pollTimer = setTimeout(function () { loadRoleTickets(role); }, 2000);
       }
-    }).catch(function () { setStatus('Related tickets unavailable — SCSM API error.'); });
+    }).catch(function () { state.skeletons = false; setStatus('Related tickets unavailable — SCSM API error.'); });
   }
 
   function updateTabCount(role, count) {
