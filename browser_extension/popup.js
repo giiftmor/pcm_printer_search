@@ -1,5 +1,5 @@
 const DEFAULT_APP_URL = 'http://196.252.15.214:5000';
-const STORAGE_KEYS = { printer: 'printer_history', userId: 'userId_history' };
+const STORAGE_KEYS = { printer: 'printer_history', userId: 'userId_history', ticket: 'ticket_history' };
 const MAX_HISTORY = 10;
 
 function getAppUrl() {
@@ -56,6 +56,24 @@ async function printerHostPattern() {
         return { hostPattern: '*://*/*', pathPrefix: '/printer-search' };
     }
 }
+
+async function scsmHostPattern() {
+    const appUrl = await getAppUrl();
+    try {
+        return { hostPattern: `*://${new URL(appUrl).hostname}/*`, pathPrefix: '/scsm-search' };
+    } catch (e) {
+        return { hostPattern: '*://*/*', pathPrefix: '/scsm-search' };
+    }
+}
+
+document.getElementById('ticketSearchBtn').addEventListener('click', async () => {
+    const raw = document.getElementById('ticketInput').value.trim();
+    if (!raw) return;
+    saveHistory(STORAGE_KEYS.ticket, raw);
+    const appUrl = await getAppUrl();
+    const p = await scsmHostPattern();
+    findOrCreateTab(`${appUrl}/scsm-search?q=${encodeURIComponent(raw)}`, p);
+});
 
 document.getElementById('printerSearchBtn').addEventListener('click', async () => {
     const raw = document.getElementById('printerInput').value.trim();
@@ -185,6 +203,9 @@ document.getElementById('printerInput').addEventListener('keypress', e => {
 document.getElementById('userIdInput').addEventListener('keypress', e => {
     if (e.key === 'Enter') document.getElementById('idmConsolidationBtn').click();
 });
+document.getElementById('ticketInput').addEventListener('keypress', e => {
+    if (e.key === 'Enter') document.getElementById('ticketSearchBtn').click();
+});
 
 const settingsPanel = document.getElementById('settingsPanel');
 const settingsBtn = document.getElementById('settingsBtn');
@@ -246,6 +267,7 @@ document.getElementById('whatsNewLink').addEventListener('click', e => {
 document.addEventListener('DOMContentLoaded', () => {
     populateDatalist('printer-history', STORAGE_KEYS.printer);
     populateDatalist('user-history', STORAGE_KEYS.userId);
+    populateDatalist('ticket-history', STORAGE_KEYS.ticket);
     loadQuickLinks();
     renderGrouperGroupChips();
     checkReloadNeeded();

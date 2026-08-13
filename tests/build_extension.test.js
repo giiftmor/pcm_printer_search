@@ -42,3 +42,10 @@ test('every runtime-required file exists in browser_extension/ and is in EXT_FIL
         assert.ok(EXT_FILES.includes(file), `EXT_FILES must include ${file}`);
     }
 });
+
+test('popup includes a Ticket Search section', () => {
+    assert.ok(popupHtml.includes('id="ticketInput"'), 'popup.html must include #ticketInput');
+    assert.ok(popupHtml.includes('id="ticketSearchBtn"'), 'popup.html must include #ticketSearchBtn');
+    assert.ok(popupHtml.includes('id="ticket-history"'), 'popup.html must include the ticket history datalist');
+    assert.ok(popupHtml.includes('Ticket Search'), 'popup.html must label the section Ticket Search');
+});

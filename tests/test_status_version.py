@@ -1,7 +1,17 @@
+import json
+import os
+
 import pytest
 from flask import Flask
 from config import Config
 from templates.routes import pages_bp
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+def _extension_version():
+    with open(os.path.join(ROOT, "browser_extension", "manifest.json")) as f:
+        return json.load(f)["version"]
 
 
 @pytest.fixture
@@ -18,7 +28,7 @@ def test_status_returns_versions(client):
     data = resp.get_json()
     assert data["name"] == "PCM Compass"
     assert data["app_version"] == Config.APP_VERSION
-    assert data["extension_version"] == "2.3.4"
+    assert data["extension_version"] == _extension_version()
 
 
 def test_status_app_version_matches_version_file():

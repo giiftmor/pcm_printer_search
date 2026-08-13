@@ -303,6 +303,14 @@
 
   loadFilterMeta();
 
+  var urlQ = new URLSearchParams(window.location.search).get('q');
+  if (urlQ && urlQ.trim().length >= 2) {
+    urlQ = urlQ.trim();
+    state.query = urlQ;
+    queryEl.value = urlQ;
+    doSearch(urlQ);
+  }
+
   function onTabClick(role) {
     if (state.pollTimer) { clearTimeout(state.pollTimer); state.pollTimer = null; }
     if (role === 'all') {

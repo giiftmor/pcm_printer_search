@@ -27,6 +27,19 @@
         </div>
 
         <section class="tool-section">
+            <h2>Ticket Search</h2>
+            <div class="input-row">
+                <input type="text" id="ticketInput" placeholder="Ticket title, ID, or keyword" list="ticket-history">
+                <datalist id="ticket-history"></datalist>
+            </div>
+            <div class="button-row">
+                <button id="ticketSearchBtn" class="btn primary">Search Tickets</button>
+            </div>
+        </section>
+
+        <hr>
+
+        <section class="tool-section">
             <h2>Printer Search</h2>
             <div class="input-row">
                 <input type="text" id="printerInput" placeholder="Hostname, serial, or MAC" list="printer-history">

@@ -35,4 +35,15 @@ def test_scsm_search_page_has_counter_line():
     app.config["TESTING"] = True
     app.register_blueprint(pages_bp)
     resp = app.test_client().get("/scsm-search")
+    assert resp.status_code == 200
     assert b'id="scsm-count"' in resp.data
+
+
+def test_scsm_search_page_supports_q_deep_link():
+    app = Flask(__name__, template_folder=os.path.join(ROOT, "templates"))
+    app.config["TESTING"] = True
+    app.register_blueprint(pages_bp)
+    resp = app.test_client().get("/scsm-search")
+    assert resp.status_code == 200
+    assert b"URLSearchParams(window.location.search)" in resp.data
+    assert b"get('q')" in resp.data
